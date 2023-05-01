@@ -8,12 +8,20 @@ import { SectionsTodoList } from './entities/sections-todo-list.entity';
 export class SectionsTodoListService {
   constructor(@InjectModel(SectionsTodoList) private sectionsTodosRepo: typeof SectionsTodoList) { }
 
-  create(createSectionsTodoListDto: CreateSectionsTodoListDto) {
-    return 'This action adds a new sectionsTodoList';
+  async create(createSectionsTodoListDto: CreateSectionsTodoListDto) {
+    return await this.sectionsTodosRepo.create({...createSectionsTodoListDto});
   }
 
   public async getListBySectionId(sectionId: string) {
     return await this.sectionsTodosRepo.findAll({where: {sectionId}, include:{all: true, nested: true}});
+  }
+
+  async updateSortPositions(sectionsList) {
+    if (sectionsList.length) {
+      const todosIds = sectionsList.map((todo) => {
+        this.sectionsTodosRepo.update({sort: todo.sort}, {where: {id: todo.id}});
+      });
+    }
   }
 
   findOne(id: number) {

@@ -9,6 +9,8 @@ import { SectionsList } from './sections-list/entities/sections-list.entity';
 import { ConfigModule } from '@nestjs/config';
 import { SectionsTodoListModule } from './sections-todo-list/sections-todo-list.module';
 import { SectionsTodoList } from './sections-todo-list/entities/sections-todo-list.entity';
+import { TodoItemsJsonModule } from './todo-items-json/todo-items-json.module';
+import { TodoItemsJson } from './todo-items-json/entities/todo-items-json.entity';
 
 @Module({
   imports: [
@@ -27,7 +29,8 @@ import { SectionsTodoList } from './sections-todo-list/entities/sections-todo-li
       models: [
         TodoList,
         SectionsList,
-        SectionsTodoList
+        SectionsTodoList,
+        TodoItemsJson
       ],
       autoLoadModels: true
     }),
@@ -35,6 +38,7 @@ import { SectionsTodoList } from './sections-todo-list/entities/sections-todo-li
       rootPath: join(__dirname, 'static'),
     }),
     SectionsTodoListModule,
+    TodoItemsJsonModule,
   ],
   controllers: [],
   providers: [],

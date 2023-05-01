@@ -19,7 +19,7 @@ export class TodoList extends Model<TodoList> {
     @Column({ type: DataType.BOOLEAN, allowNull: false })
     isComplete: boolean;
 
-    @Column({ type: DataType.STRING, allowNull: false })
+    @Column({ type: DataType.STRING, allowNull: true })
     parentId: string;
 
     @ForeignKey(() => SectionsTodoList)

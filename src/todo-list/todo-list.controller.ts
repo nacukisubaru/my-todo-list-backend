@@ -7,7 +7,7 @@ import { UpdateTodoListDto } from './dto/update-todo-list.dto';
 export class TodoListController {
   constructor(private readonly todoListService: TodoListService) { }
 
-  @Post()
+  @Post('/create')
   create(@Body() createTodoListDto: CreateTodoListDto) {
     return this.todoListService.create(createTodoListDto);
   }
@@ -15,6 +15,11 @@ export class TodoListController {
   @Get('/by-section/:id')
   getBySectionAll(@Param('id') id: string) {
     return this.todoListService.getTodosWithSections(id);
+  }
+
+  @Post('/updateSort')
+  updateSort(@Body() todoList: CreateTodoListDto[]) {
+    this.todoListService.updateSortPositions(todoList);
   }
 
   @Get(':id')
@@ -27,8 +32,8 @@ export class TodoListController {
     return this.todoListService.update(+id, updateTodoListDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.todoListService.remove(+id);
+  @Post('/remove')
+  remove(@Body() ids: string[]) {
+    return this.todoListService.remove(ids);
   }
 }

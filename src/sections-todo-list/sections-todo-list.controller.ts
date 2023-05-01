@@ -7,7 +7,7 @@ import { UpdateSectionsTodoListDto } from './dto/update-sections-todo-list.dto';
 export class SectionsTodoListController {
   constructor(private readonly sectionsTodoListService: SectionsTodoListService) {}
 
-  @Post()
+  @Post('/create')
   create(@Body() createSectionsTodoListDto: CreateSectionsTodoListDto) {
     return this.sectionsTodoListService.create(createSectionsTodoListDto);
   }

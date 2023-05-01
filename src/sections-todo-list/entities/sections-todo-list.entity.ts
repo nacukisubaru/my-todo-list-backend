@@ -22,4 +22,7 @@ export class SectionsTodoList extends Model<SectionsTodoList>{
 
     @BelongsTo(() => SectionsList, { as: 'sectionsList'})
     sections: SectionsList[];
+
+    @Column({ type: DataType.INTEGER, allowNull: false })
+    sort: number;
 }

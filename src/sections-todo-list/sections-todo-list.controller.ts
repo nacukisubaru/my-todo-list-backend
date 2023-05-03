@@ -27,9 +27,9 @@ export class SectionsTodoListController {
     return this.sectionsTodoListService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSectionsTodoListDto: UpdateSectionsTodoListDto) {
-    return this.sectionsTodoListService.update(+id, updateSectionsTodoListDto);
+  @Post('/update')
+  update(@Body() updateSectionsTodoListDto: UpdateSectionsTodoListDto) {
+    return this.sectionsTodoListService.update(updateSectionsTodoListDto);
   }
 
   @Delete(':id')

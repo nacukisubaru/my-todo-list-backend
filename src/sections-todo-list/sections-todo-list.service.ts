@@ -24,12 +24,13 @@ export class SectionsTodoListService {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} sectionsTodoList`;
+  async update(updateSectionsTodoListDto: UpdateSectionsTodoListDto) {
+    const {name, showTasks} = updateSectionsTodoListDto;
+    return await this.sectionsTodosRepo.update({name, showTasks}, {where: {id: updateSectionsTodoListDto.id}});
   }
 
-  update(id: number, updateSectionsTodoListDto: UpdateSectionsTodoListDto) {
-    return `This action updates a #${id} sectionsTodoList`;
+  findOne(id: number) {
+    return `This action returns a #${id} sectionsTodoList`;
   }
 
   remove(id: number) {

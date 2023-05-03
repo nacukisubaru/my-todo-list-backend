@@ -109,6 +109,7 @@ export class TodoListService {
 
     todoList.map((section) => {
       recursiveBuildTodoList(section.items);
+      section.items.sort((a, b) => a.sort - b.sort);
     });
 
     todoList.sort((a, b) => a.sort - b.sort);
@@ -136,16 +137,17 @@ export class TodoListService {
     }
   }
 
+  async update(updateTodoListDto: UpdateTodoListDto) {
+    const {name, description, showTasks, isComplete} = updateTodoListDto;
+    return await this.todoListRepo.update({name, description, showTasks, isComplete}, {where: {id: updateTodoListDto.id}});
+  }
+
   findAll() {
     return `This action returns all todoList`;
   }
 
   findOne(id: number) {
     return `This action returns a #${id} todoList`;
-  }
-
-  update(id: number, updateTodoListDto: UpdateTodoListDto) {
-    return `This action updates a #${id} todoList`;
   }
 
   async remove(ids: string[]) {

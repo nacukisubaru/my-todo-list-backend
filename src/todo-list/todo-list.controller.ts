@@ -27,9 +27,9 @@ export class TodoListController {
     return this.todoListService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTodoListDto: UpdateTodoListDto) {
-    return this.todoListService.update(+id, updateTodoListDto);
+  @Post('/update')
+  update(@Body() updateTodoListDto: UpdateTodoListDto) {
+    return this.todoListService.update(updateTodoListDto);
   }
 
   @Post('/remove')

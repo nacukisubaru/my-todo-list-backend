@@ -2,7 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { SectionsTodoListService } from './sections-todo-list.service';
 import { CreateSectionsTodoListDto } from './dto/create-sections-todo-list.dto';
 import { UpdateSectionsTodoListDto } from './dto/update-sections-todo-list.dto';
-
+import { RemoveSectionsTodoListDto } from './dto/remove-sections-todo-list.dto';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 @Controller('sections-todo-list')
 export class SectionsTodoListController {
   constructor(private readonly sectionsTodoListService: SectionsTodoListService) {}
@@ -32,8 +33,11 @@ export class SectionsTodoListController {
     return this.sectionsTodoListService.update(updateSectionsTodoListDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.sectionsTodoListService.remove(+id);
+  @Post('/remove')
+  remove(@Body() removeSectionDto: RemoveSectionsTodoListDto) {
+    if (!removeSectionDto.id) {
+      throw new HttpException('Не передан id', HttpStatus.BAD_REQUEST);
+    }
+    return this.sectionsTodoListService.remove(removeSectionDto.id);
   }
 }

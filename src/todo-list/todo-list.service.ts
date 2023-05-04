@@ -151,6 +151,15 @@ export class TodoListService {
   }
 
   async remove(ids: string[]) {
-    return await this.todoListRepo.destroy({ where: { id: ids } });
+    const itemsJson: any = await this.todoItemsJsonService.findOneByCode('items');
+      const data: any[] = itemsJson.jsonData;
+      const newItems: any = data.filter((item) => {
+        if (!ids.includes(item.id)) {
+          return item;
+        }
+      });
+
+      await this.todoItemsJsonService.addItemsJson({jsonData: newItems});
+      return await this.todoListRepo.destroy({ where: { id: ids } });
   }
 }

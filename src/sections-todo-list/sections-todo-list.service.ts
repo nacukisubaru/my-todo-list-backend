@@ -6,7 +6,9 @@ import { SectionsTodoList } from './entities/sections-todo-list.entity';
 
 @Injectable()
 export class SectionsTodoListService {
-  constructor(@InjectModel(SectionsTodoList) private sectionsTodosRepo: typeof SectionsTodoList) { }
+  constructor(
+    @InjectModel(SectionsTodoList) private sectionsTodosRepo: typeof SectionsTodoList
+  ) { }
 
   async create(createSectionsTodoListDto: CreateSectionsTodoListDto) {
     return await this.sectionsTodosRepo.create({...createSectionsTodoListDto});
@@ -18,7 +20,7 @@ export class SectionsTodoListService {
 
   async updateSortPositions(sectionsList) {
     if (sectionsList.length) {
-      const todosIds = sectionsList.map((todo) => {
+      sectionsList.map((todo) => {
         this.sectionsTodosRepo.update({sort: todo.sort}, {where: {id: todo.id}});
       });
     }
@@ -29,11 +31,11 @@ export class SectionsTodoListService {
     return await this.sectionsTodosRepo.update({name, showTasks}, {where: {id: updateSectionsTodoListDto.id}});
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} sectionsTodoList`;
+  async remove(id: string) {
+    return await this.sectionsTodosRepo.destroy({where:{id}});
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} sectionsTodoList`;
+  findOne(id: number) {
+    return `This action returns a #${id} sectionsTodoList`;
   }
 }

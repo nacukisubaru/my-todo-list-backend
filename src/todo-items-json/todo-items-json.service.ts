@@ -11,6 +11,10 @@ export class TodoItemsJsonService {
     return await this.todoItemsJsonRepo.update({...createTodoItemsJsonDto}, {where: {code: 'sections'}});
   }
 
+  async addTodoSectionsJson(createTodoItemsJsonDto: CreateTodoItemsJsonDto) {
+    return await this.todoItemsJsonRepo.update({...createTodoItemsJsonDto}, {where: {code: 'todo-sections'}});
+  }
+
   async addItemsJson(createTodoItemsJsonDto: CreateTodoItemsJsonDto) {
     return await this.todoItemsJsonRepo.update({...createTodoItemsJsonDto}, {where: {code: 'items'}});
   }

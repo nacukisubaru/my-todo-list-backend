@@ -12,6 +12,11 @@ export class TodoItemsJsonController {
     return this.todoItemsJsonService.addItemsJson(createTodoItemsJsonDto);
   }
 
+  @Post('/addTodoSections')
+  addTodoSections(@Body() createTodoItemsJsonDto: CreateTodoItemsJsonDto) {
+    return this.todoItemsJsonService.addTodoSectionsJson(createTodoItemsJsonDto);
+  }
+
   @Post('/addSections')
   addSections(@Body() createTodoItemsJsonDto: CreateTodoItemsJsonDto) {
     return this.todoItemsJsonService.addSectionsJson(createTodoItemsJsonDto);

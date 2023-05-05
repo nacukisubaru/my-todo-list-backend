@@ -19,7 +19,8 @@ export class TodoListService {
     let todoItems = [];
 
     const todoItemsJson = await this.todoItemsJsonService.findOneByCode('items');
-    const todoSectionsJson = await this.todoItemsJsonService.findOneByCode('sections');
+    const todoSectionsJson = await this.todoItemsJsonService.findOneByCode('todo-sections');
+    const sectionsJson = await this.todoItemsJsonService.findOneByCode('sections');
 
     const updatePositions = async (id: any, jsonData: any, type?: any) => {
       if (jsonData.length) {

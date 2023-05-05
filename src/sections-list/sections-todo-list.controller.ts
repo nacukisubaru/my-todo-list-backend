@@ -12,7 +12,7 @@ export class SectionsListController {
     return this.sectionsListService.create(createSectionsListDto);
   }
 
-  @Get()
+  @Get('/list')
   findAll() {
     return this.sectionsListService.findAll();
   }

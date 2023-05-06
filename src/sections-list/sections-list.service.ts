@@ -61,11 +61,11 @@ export class SectionsListService {
           }
         });
 
-        section.items.sort((a, b) => a.sort - b.sort);
         if (section.items.length) {
           recursiveBuildTodoList(section.items);
         }
       });
+      sections.sort((a, b) => a.sort - b.sort);
     }
 
     recursiveBuildTodoList(sectionList);

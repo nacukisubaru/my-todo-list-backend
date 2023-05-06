@@ -7,6 +7,7 @@ import { SectionsTodoListModule } from 'src/sections-todo-list/sections-todo-lis
 import { SectionsTodoList } from 'src/sections-todo-list/entities/sections-todo-list.entity';
 import { TodoItemsJsonModule } from 'src/todo-items-json/todo-items-json.module';
 import { TodoItemsJson } from 'src/todo-items-json/entities/todo-items-json.entity';
+import { SectionsListModule } from 'src/sections-list/sections-list.module';
 
 @Module({
   controllers: [TodoListController],
@@ -14,7 +15,8 @@ import { TodoItemsJson } from 'src/todo-items-json/entities/todo-items-json.enti
   imports: [
     SequelizeModule.forFeature([TodoList, SectionsTodoList, TodoItemsJson]),
     SectionsTodoListModule,
-    TodoItemsJsonModule
+    TodoItemsJsonModule,
+    SectionsListModule
   ]
 })
 export class TodoListModule {}

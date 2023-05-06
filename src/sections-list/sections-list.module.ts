@@ -9,6 +9,9 @@ import { SectionsList } from './entities/sections-list.entity';
   providers: [SectionsListService],
   imports:[
     SequelizeModule.forFeature([SectionsList]),
+  ],
+  exports: [
+    SectionsListService
   ]
 })
 export class SectionsListModule {}

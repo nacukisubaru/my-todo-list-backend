@@ -10,12 +10,71 @@ export class SectionsListService {
     @InjectModel(SectionsList) private sectionsRepo: typeof SectionsList
   ) { }
 
-  create(createSectionsListDto: CreateSectionsListDto) {
-    return 'This action adds a new sectionsList';
+  async create(createSectionsListDto: CreateSectionsListDto) {
+    return await this.sectionsRepo.create({ ...createSectionsListDto });
+  }
+
+  async updateSortPositions(sectionsList) {
+    if (sectionsList.length) {
+      sectionsList.map((todo) => {
+        this.sectionsRepo.update({ sort: todo.sort }, { where: { id: todo.id } });
+      });
+    }
+  }
+
+  private async getSections() {
+    const sectionList = [];
+    const sectionItems = [];
+    const sections = await this.sectionsRepo.findAll();
+    sections.map(section => {
+      const sectionObj = {
+        id: section.id,
+        type: "section",
+        parentId: null,
+        name: section.name,
+        showSections: section.showSections,
+        sort: section.sort,
+        items: []
+      };
+
+      if (section.dataValues.parentId) {
+        sectionItems.push({
+          id: section.dataValues.id,
+          name: section.dataValues.name,
+          parentId: section.dataValues.parentId,
+          sort: section.dataValues.sort,
+          showSections: section.dataValues.showSections,
+          items: []
+        });
+      }
+
+      if (!section.parentId) { 
+        sectionList.push(sectionObj);
+      }
+    });
+
+    const recursiveBuildTodoList = (sections) => {
+      sections.map((section) => {
+        sectionItems.map((sectionItem) => {
+          if (section.id === sectionItem.parentId) {
+            section.items.push(sectionItem);
+          }
+        });
+
+        section.items.sort((a, b) => a.sort - b.sort);
+        if (section.items.length) {
+          recursiveBuildTodoList(section.items);
+        }
+      });
+    }
+
+    recursiveBuildTodoList(sectionList);
+    sectionList.sort((a, b) => a.sort - b.sort);
+    return sectionList;
   }
 
   async findAll() {
-    return await this.sectionsRepo.findAll();
+    return await this.getSections();
   }
 
   findOne(id: number) {

@@ -7,7 +7,7 @@ import { UpdateSectionsListDto } from './dto/update-sections-list.dto';
 export class SectionsListController {
   constructor(private readonly sectionsListService: SectionsListService) {}
 
-  @Post()
+  @Post('/create')
   create(@Body() createSectionsListDto: CreateSectionsListDto) {
     return this.sectionsListService.create(createSectionsListDto);
   }

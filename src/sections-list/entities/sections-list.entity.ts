@@ -9,6 +9,15 @@ export class SectionsList extends Model<SectionsList>{
     @Column({ type: DataType.STRING, allowNull: false })
     name: string;
 
+    @Column({ type: DataType.INTEGER, allowNull: false })
+    sort: number;
+
+    @Column({ type: DataType.BOOLEAN, allowNull: false })
+    showSections: boolean;
+
+    @Column({ type: DataType.STRING })
+    parentId: string;
+
     @HasMany(() => SectionsTodoList)
     todosSections: SectionsTodoList[];
 }

@@ -7,6 +7,11 @@ import { UpdateTodoListDto } from './dto/update-todo-list.dto';
 export class TodoListController {
   constructor(private readonly todoListService: TodoListService) { }
 
+  @Get('/updTodosPositions')
+  updateTodosPositions() {
+    this.todoListService.updatePositions();
+  }
+
   @Post('/create')
   create(@Body() createTodoListDto: CreateTodoListDto) {
     return this.todoListService.create(createTodoListDto);

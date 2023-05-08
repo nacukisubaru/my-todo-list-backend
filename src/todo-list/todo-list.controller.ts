@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { TodoListService } from './todo-list.service';
 import { CreateTodoListDto } from './dto/create-todo-list.dto';
 import { UpdateTodoListDto } from './dto/update-todo-list.dto';
@@ -17,8 +17,8 @@ export class TodoListController {
     return this.todoListService.create(createTodoListDto);
   }
 
-  @Get('/by-section/:id')
-  getBySectionAll(@Param('id') id: string) {
+  @Get('/by-section')
+  getBySectionAll(@Query('id') id: string) {
     return this.todoListService.getTodosWithSections(id);
   }
 

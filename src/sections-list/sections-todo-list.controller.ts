@@ -22,9 +22,9 @@ export class SectionsListController {
     return this.sectionsListService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSectionsListDto: UpdateSectionsListDto) {
-    return this.sectionsListService.update(+id, updateSectionsListDto);
+  @Post('/update')
+  update(@Body() updateSectionsListDto: UpdateSectionsListDto) {
+    return this.sectionsListService.update(updateSectionsListDto);
   }
 
   @Delete(':id')

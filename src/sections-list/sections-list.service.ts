@@ -81,8 +81,8 @@ export class SectionsListService {
     return `This action returns a #${id} sectionsList`;
   }
 
-  update(id: number, updateSectionsListDto: UpdateSectionsListDto) {
-    return `This action updates a #${id} sectionsList`;
+  async update(updateSectionsListDto: UpdateSectionsListDto) {
+    return await this.sectionsRepo.update({...updateSectionsListDto}, {where: {id: updateSectionsListDto.id}});
   }
 
   remove(id: number) {

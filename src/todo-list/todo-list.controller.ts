@@ -27,9 +27,9 @@ export class TodoListController {
     this.todoListService.updateSortPositions(todoList);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.todoListService.findOne(+id);
+  @Get('/getById')
+  findOne(@Query('id') id: string) {
+    return this.todoListService.findOne(id);
   }
 
   @Post('/update')

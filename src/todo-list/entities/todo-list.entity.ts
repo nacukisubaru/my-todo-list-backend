@@ -10,7 +10,7 @@ export class TodoList extends Model<TodoList> {
     @Column({ type: DataType.STRING, allowNull: false })
     name: string;
 
-    @Column({ type: DataType.STRING, allowNull: false })
+    @Column({ type: DataType.STRING(16000), allowNull: false })
     description: string;
 
     @Column({ type: DataType.BOOLEAN, allowNull: false })

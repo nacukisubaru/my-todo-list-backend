@@ -155,8 +155,8 @@ export class TodoListService {
     return `This action returns all todoList`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} todoList`;
+  async findOne(id: string) {
+    return await this.todoListRepo.findOne({where: {id}}); 
   }
 
   async remove(ids: string[]) {

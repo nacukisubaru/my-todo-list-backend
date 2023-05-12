@@ -50,7 +50,7 @@ export class TodoListService {
             creatable: false,
             creatableLower: false,
             creatableUpper: false,
-            isComplete: false,
+            isComplete: todo.dataValues.isComplete,
             items: []
           });
         }
@@ -71,7 +71,7 @@ export class TodoListService {
             creatable: false,
             creatableLower: false,
             creatableUpper: false,
-            isComplete: false,
+            isComplete: todo.dataValues.isComplete,
             items: []
           });
         }
@@ -135,8 +135,9 @@ export class TodoListService {
       } else if (type === "sections") {
         await this.sectionsService.updateSortPositions(todoList);
       } else {
-        const todosIds = todoList.map((todo) => {
-          this.todoListRepo.update({sort: todo.sort}, {where: {id: todo.id}});
+        todoList.map((todo) => {
+          const {sort, isComplete} = todo;
+          this.todoListRepo.update({sort, isComplete}, {where: {id: todo.id}});
           return todo.id;
         });
         // await this.todoListRepo.destroy({ where: { id: todosIds } });

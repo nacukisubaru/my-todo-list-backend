@@ -1,4 +1,5 @@
-import { Column, DataType, Table, Model } from "sequelize-typescript";
+import { Column, DataType, Table, Model, ForeignKey } from "sequelize-typescript";
+import { User } from "src/users/users.model";
 
 @Table({tableName: 'todo-items-json'})
 export class TodoItemsJson extends Model<TodoItemsJson> {
@@ -10,4 +11,8 @@ export class TodoItemsJson extends Model<TodoItemsJson> {
 
     @Column({type: DataType.JSONB, allowNull: false})
     jsonData: object
+
+    @ForeignKey(() => User)
+    @Column({ type: DataType.INTEGER, allowNull: false })
+    userId: number;
 }

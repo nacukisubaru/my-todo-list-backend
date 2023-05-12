@@ -11,11 +11,14 @@ import { SectionsTodoListModule } from './sections-todo-list/sections-todo-list.
 import { SectionsTodoList } from './sections-todo-list/entities/sections-todo-list.entity';
 import { TodoItemsJsonModule } from './todo-items-json/todo-items-json.module';
 import { TodoItemsJson } from './todo-items-json/entities/todo-items-json.entity';
+import { User } from './users/users.model';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
    TodoListModule,
    SectionsListModule,
+   UsersModule,
    ConfigModule.forRoot({
     envFilePath: `.${process.env.NODE_ENV}.env`
   }),
@@ -30,7 +33,8 @@ import { TodoItemsJson } from './todo-items-json/entities/todo-items-json.entity
         TodoList,
         SectionsList,
         SectionsTodoList,
-        TodoItemsJson
+        TodoItemsJson,
+        User
       ],
       autoLoadModels: true
     }),

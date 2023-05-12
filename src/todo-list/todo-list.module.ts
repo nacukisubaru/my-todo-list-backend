@@ -8,6 +8,7 @@ import { SectionsTodoList } from 'src/sections-todo-list/entities/sections-todo-
 import { TodoItemsJsonModule } from 'src/todo-items-json/todo-items-json.module';
 import { TodoItemsJson } from 'src/todo-items-json/entities/todo-items-json.entity';
 import { SectionsListModule } from 'src/sections-list/sections-list.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   controllers: [TodoListController],
@@ -16,7 +17,8 @@ import { SectionsListModule } from 'src/sections-list/sections-list.module';
     SequelizeModule.forFeature([TodoList, SectionsTodoList, TodoItemsJson]),
     SectionsTodoListModule,
     TodoItemsJsonModule,
-    SectionsListModule
+    SectionsListModule,
+    JwtModule
   ]
 })
 export class TodoListModule {}

@@ -111,10 +111,10 @@ export class TodoListService {
   }
 
 
-  async updatePositions() {
-    const todoItemsJson = await this.todoItemsJsonService.findOneByCode('items');
-    const todoSectionsJson = await this.todoItemsJsonService.findOneByCode('todo-sections');
-    const sectionsJson = await this.todoItemsJsonService.findOneByCode('sections');
+  async updatePositions(userId: number) {
+    const todoItemsJson = await this.todoItemsJsonService.findOneByCodeAndUser('items', userId);
+    const todoSectionsJson = await this.todoItemsJsonService.findOneByCodeAndUser('todo-sections', userId);
+    const sectionsJson = await this.todoItemsJsonService.findOneByCodeAndUser('sections', userId);
 
     const updatePositions = async (id: any, jsonData: any, type?: any) => {
       if (jsonData.length) {
@@ -123,9 +123,15 @@ export class TodoListService {
       }
     }
 
-    await updatePositions(todoItemsJson.id, todoItemsJson.jsonData);
-    await updatePositions(todoSectionsJson.id, todoSectionsJson.jsonData, "todo-sections");
-    await updatePositions(sectionsJson.id, sectionsJson.jsonData, "sections");
+    if (todoItemsJson) {
+      await updatePositions(todoItemsJson.id, todoItemsJson.jsonData);
+    }
+    if (todoSectionsJson) {
+      await updatePositions(todoSectionsJson.id, todoSectionsJson.jsonData, "todo-sections");
+    }
+    if (sectionsJson) {
+      await updatePositions(sectionsJson.id, sectionsJson.jsonData, "sections");
+    }
   }
 
   async updateSortPositions(todoList, type?: any) {
@@ -160,8 +166,8 @@ export class TodoListService {
     return await this.todoListRepo.findOne({where: {id}}); 
   }
 
-  async remove(ids: string[]) {
-    const itemsJson: any = await this.todoItemsJsonService.findOneByCode('items');
+  async remove(ids: string[], userId: number) {
+    const itemsJson: any = await this.todoItemsJsonService.findOneByCodeAndUser('items', userId);
       const data: any[] = itemsJson.jsonData;
       const newItems: any = data.filter((item) => {
         if (!ids.includes(item.id)) {
@@ -169,7 +175,7 @@ export class TodoListService {
         }
       });
 
-      await this.todoItemsJsonService.addItemsJson({jsonData: newItems});
+      await this.todoItemsJsonService.addItemsJson({jsonData: newItems}, userId);
       return await this.todoListRepo.destroy({ where: { id: ids } });
   }
 }

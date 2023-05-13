@@ -29,7 +29,8 @@ export class AuthService {
 
         const hashPassword = await bcrypt.hash(userDto.password, 5);
         const user = await this.userService.createUser({ ...userDto, password: hashPassword });
-        await this.sectionService.create({ id: bcrypt.genSaltSync(10) + Date.now(), name: 'Начало работы', sort: 0, showSections: true, parentId: null }, user.id);
+        const taskId: any = bcrypt.genSaltSync(10) + Date.now();
+        await this.sectionService.create({ id: taskId.replaceAll('/','').replaceAll('.',''), name: 'Начало работы', sort: 0, showSections: true, parentId: null }, user.id);
         await this.todoItemsJsonService.createJsons(user.id);
         return this.genereateToken(user);
     }

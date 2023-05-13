@@ -1,34 +1,28 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { TodoItemsJsonService } from './todo-items-json.service';
 import { CreateTodoItemsJsonDto } from './dto/create-todo-items-json.dto';
-import { UpdateTodoItemsJsonDto } from './dto/update-todo-items-json.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('todo-items-json')
 export class TodoItemsJsonController {
   constructor(private readonly todoItemsJsonService: TodoItemsJsonService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post('/addItems')
-  addItems(@Body() createTodoItemsJsonDto: CreateTodoItemsJsonDto) {
-    return this.todoItemsJsonService.addItemsJson(createTodoItemsJsonDto);
+  addItems(@Body() createTodoItemsJsonDto: CreateTodoItemsJsonDto, @Req() request) {
+    return this.todoItemsJsonService.addItemsJson(createTodoItemsJsonDto, request.user.id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('/addTodoSections')
-  addTodoSections(@Body() createTodoItemsJsonDto: CreateTodoItemsJsonDto) {
-    return this.todoItemsJsonService.addTodoSectionsJson(createTodoItemsJsonDto);
+  addTodoSections(@Body() createTodoItemsJsonDto: CreateTodoItemsJsonDto, @Req() request) {
+    return this.todoItemsJsonService.addTodoSectionsJson(createTodoItemsJsonDto, request.user.id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('/addSections')
-  addSections(@Body() createTodoItemsJsonDto: CreateTodoItemsJsonDto) {
-    return this.todoItemsJsonService.addSectionsJson(createTodoItemsJsonDto);
+  addSections(@Body() createTodoItemsJsonDto: CreateTodoItemsJsonDto, @Req() request) {
+    return this.todoItemsJsonService.addSectionsJson(createTodoItemsJsonDto, request.user.id);
   }
 
-  @Get()
-  findOne() {
-    //return this.todoItemsJsonService.findOne();
-  }
-
-  @Post('/remove')
-  remove() {
-    //return this.todoItemsJsonService.remove();
-  }
 }

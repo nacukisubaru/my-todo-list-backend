@@ -29,7 +29,7 @@ export class TodoListController {
   updateSort(@Body() todoList: CreateTodoListDto[]) {
     this.todoListService.updateSortPositions(todoList);
   }
-
+  
   @Get('/getById')
   findOne(@Query('id') id: string) {
     return this.todoListService.findOne(id);

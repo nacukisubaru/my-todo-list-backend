@@ -6,21 +6,29 @@ import { TodoItemsJson } from './entities/todo-items-json.entity';
 @Injectable()
 export class TodoItemsJsonService {
   constructor(@InjectModel(TodoItemsJson) private todoItemsJsonRepo: typeof TodoItemsJson) { }
-
-  async addSectionsJson(createTodoItemsJsonDto: CreateTodoItemsJsonDto) {
-    return await this.todoItemsJsonRepo.update({...createTodoItemsJsonDto}, {where: {code: 'sections'}});
+  
+  async createJsons(userId: number) {
+    return await this.todoItemsJsonRepo.bulkCreate([
+      {jsonData: [], code: 'items', userId},
+      {jsonData: [], code: 'todo-sections', userId},
+      {jsonData: [], code: 'sections', userId},
+    ]);
   }
 
-  async addTodoSectionsJson(createTodoItemsJsonDto: CreateTodoItemsJsonDto) {
-    return await this.todoItemsJsonRepo.update({...createTodoItemsJsonDto}, {where: {code: 'todo-sections'}});
+  async addSectionsJson(createTodoItemsJsonDto: CreateTodoItemsJsonDto, userId: number) {
+    return await this.todoItemsJsonRepo.update({...createTodoItemsJsonDto}, {where: {code: 'sections', userId}});
   }
 
-  async addItemsJson(createTodoItemsJsonDto: CreateTodoItemsJsonDto) {
-    return await this.todoItemsJsonRepo.update({...createTodoItemsJsonDto}, {where: {code: 'items'}});
+  async addTodoSectionsJson(createTodoItemsJsonDto: CreateTodoItemsJsonDto, userId: number) {
+    return await this.todoItemsJsonRepo.update({...createTodoItemsJsonDto}, {where: {code: 'todo-sections', userId}});
   }
 
-  async findOneByCode(code: string) {
-    return await this.todoItemsJsonRepo.findOne({where: {code}});
+  async addItemsJson(createTodoItemsJsonDto: CreateTodoItemsJsonDto, userId: number) {
+    return await this.todoItemsJsonRepo.update({...createTodoItemsJsonDto}, {where: {code: 'items', userId}});
+  }
+
+  async findOneByCodeAndUser(code: string, userId: number) {
+    return await this.todoItemsJsonRepo.findOne({where: {code, userId}});
   }
 
   async findAll() {

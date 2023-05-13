@@ -10,8 +10,8 @@ export class SectionsListService {
     @InjectModel(SectionsList) private sectionsRepo: typeof SectionsList
   ) { }
 
-  async create(createSectionsListDto: CreateSectionsListDto) {
-    return await this.sectionsRepo.create({ ...createSectionsListDto });
+  async create(createSectionsListDto: CreateSectionsListDto, userId: number) {
+    return await this.sectionsRepo.create({ ...createSectionsListDto, userId });
   }
 
   async updateSortPositions(sectionsList) {
@@ -22,10 +22,10 @@ export class SectionsListService {
     }
   }
 
-  private async getSections() {
+  private async getSections(userId: number) {
     const sectionList = [];
     const sectionItems = [];
-    const sections = await this.sectionsRepo.findAll();
+    const sections = await this.sectionsRepo.findAll({where: {userId}});
     sections.map(section => {
       const sectionObj = {
         id: section.id,
@@ -73,8 +73,8 @@ export class SectionsListService {
     return sectionList;
   }
 
-  async findAll() {
-    return await this.getSections();
+  async findAll(userId: number) {
+    return await this.getSections(userId);
   }
 
   findOne(id: number) {

@@ -16,9 +16,10 @@ export class SectionsListService {
 
   async updateSortPositions(sectionsList) {
     if (sectionsList.length) {
-      sectionsList.map((todo) => {
-        this.sectionsRepo.update({ sort: todo.sort }, { where: { id: todo.id } });
+      const requests = sectionsList.map((todo) => {
+       return this.sectionsRepo.update({ sort: todo.sort }, { where: { id: todo.id } });
       });
+      return await Promise.all(requests);
     }
   }
 
@@ -66,10 +67,16 @@ export class SectionsListService {
         }
       });
       sections.sort((a, b) => a.sort - b.sort);
+      sections.map((section, index) => {
+        section.index = index;
+      });
     }
 
     recursiveBuildTodoList(sectionList);
     sectionList.sort((a, b) => a.sort - b.sort);
+    sectionList.map((section, index) => {
+      section.index = index;
+    });
     return sectionList;
   }
 

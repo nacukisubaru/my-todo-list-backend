@@ -20,9 +20,10 @@ export class SectionsTodoListService {
 
   async updateSortPositions(sectionsList) {
     if (sectionsList.length) {
-      sectionsList.map((todo) => {
-        this.sectionsTodosRepo.update({sort: todo.sort}, {where: {id: todo.id}});
+      const requests = sectionsList.map((todo) => {
+       return this.sectionsTodosRepo.update({sort: todo.sort}, {where: {id: todo.id}});
       });
+      return await Promise.all(requests);
     }
   }
 

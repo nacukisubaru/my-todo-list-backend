@@ -21,7 +21,7 @@ export class TodoListService {
     let todoItems = [];
 
     const todosSections = await this.sectionsTodoListService.getListBySectionId(sectionId);
-    todosSections.map(todoSection => {
+    todosSections.map((todoSection) => {
       const todos = todoSection.todos;
       const sectionObj = {
         id: todoSection.id,
@@ -29,6 +29,7 @@ export class TodoListService {
         name: todoSection.name,
         showTasks: todoSection.showTasks,
         sort: todoSection.sort,
+        index: 0,
         type: 'section',
         editable: false,
         creatable: false,
@@ -45,6 +46,7 @@ export class TodoListService {
             description: todo.dataValues.description,
             sort: todo.dataValues.sort,
             type: 'task',
+            index: 0,
             showTasks: todo.dataValues.showTasks,
             editable: false,
             creatable: false,
@@ -66,6 +68,7 @@ export class TodoListService {
             description: todo.dataValues.description,
             sort: todo.dataValues.sort,
             type: 'task',
+            index: 0,
             showTasks: todo.dataValues.showTasks,
             editable: false,
             creatable: false,
@@ -89,6 +92,11 @@ export class TodoListService {
             }
           });
           todo.items.sort((a, b) => a.sort - b.sort);
+          todo.items.map((item, index) => {
+            if (todo.items[index - 1]) {
+              item.index = todo.items[index - 1].index + 1;
+            }
+          })
           if (todo.items.length) {
             recursiveBuildTodoList(todo.items);
           }
@@ -99,9 +107,18 @@ export class TodoListService {
     todoList.map((section) => {
       recursiveBuildTodoList(section.items);
       section.items.sort((a, b) => a.sort - b.sort);
+      section.items.map((item, index) => {
+        if (section.items[index - 1]) {
+          item.index = section.items[index - 1].index + 1;
+        }
+      });
     });
 
     todoList.sort((a, b) => a.sort - b.sort);
+
+    todoList.map((todo, index) => {
+      todo.index = index;
+    });
 
     return todoList;
   }
@@ -141,11 +158,11 @@ export class TodoListService {
       } else if (type === "sections") {
         await this.sectionsService.updateSortPositions(todoList);
       } else {
-        todoList.map((todo) => {
-          const {sort, isComplete} = todo;
-          this.todoListRepo.update({sort, isComplete}, {where: {id: todo.id}});
-          return todo.id;
+        const requests = todoList.map((todo) => {
+          const {sort, isComplete, sectionId} = todo;
+          return this.todoListRepo.update({sort, isComplete, sectionId}, {where: {id: todo.id}});
         });
+        return await Promise.all(requests);
         // await this.todoListRepo.destroy({ where: { id: todosIds } });
         // await this.todoListRepo.bulkCreate(todoList);
 

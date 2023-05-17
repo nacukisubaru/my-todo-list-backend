@@ -10,8 +10,8 @@ export class TodoListController {
 
   @UseGuards(JwtAuthGuard)
   @Get('/updTodosPositions')
-  updateTodosPositions(@Req() request ) {
-    this.todoListService.updatePositions(request.user.id);
+  async updateTodosPositions(@Req() request ) {
+   return await this.todoListService.updatePositions(request.user.id);
   }
 
   @Post('/create')
@@ -26,8 +26,8 @@ export class TodoListController {
   }
 
   @Post('/updateSort')
-  updateSort(@Body() todoList: CreateTodoListDto[]) {
-    this.todoListService.updateSortPositions(todoList);
+  async updateSort(@Body() todoList: CreateTodoListDto[]) {
+    await this.todoListService.updateSortPositions(todoList);
   }
   
   @Get('/getById')

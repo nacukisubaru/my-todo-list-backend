@@ -13,6 +13,10 @@ import { TodoItemsJsonModule } from './todo-items-json/todo-items-json.module';
 import { TodoItemsJson } from './todo-items-json/entities/todo-items-json.entity';
 import { User } from './users/users.model';
 import { UsersModule } from './users/users.module';
+import { FilesModule } from './files/files.module';
+import { FilesFoldersModule } from './files-folders/files-folders.module';
+import { Files } from './files/entities/file.entity';
+import { FilesFolder } from './files-folders/entities/files-folder.entity';
 
 @Module({
   imports: [
@@ -34,7 +38,9 @@ import { UsersModule } from './users/users.module';
         SectionsList,
         SectionsTodoList,
         TodoItemsJson,
-        User
+        User,
+        Files,
+        FilesFolder
       ],
       autoLoadModels: true
     }),
@@ -43,6 +49,8 @@ import { UsersModule } from './users/users.module';
     }),
     SectionsTodoListModule,
     TodoItemsJsonModule,
+    FilesModule,
+    FilesFoldersModule,
   ],
   controllers: [],
   providers: [],

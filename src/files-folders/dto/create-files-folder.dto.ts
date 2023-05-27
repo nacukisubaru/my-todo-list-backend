@@ -1,1 +1,3 @@
-export class CreateFilesFolderDto {}
+export class CreateFilesFolderDto {
+    name: string;
+}

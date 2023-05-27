@@ -47,7 +47,7 @@ export class FilesService {
         const fileName = uuid.v4() + '.jpg';
         let filePath = path.resolve('./public/upload/');
         if (folder) {
-          filePath = filePath + folder;
+          filePath = filePath + '/' + folder;
         }
         if(!fs.existsSync(filePath)) {
             fs.mkdirSync(filePath, {recursive: true});

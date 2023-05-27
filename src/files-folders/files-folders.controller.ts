@@ -8,9 +8,10 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 export class FilesFoldersController {
   constructor(private readonly filesFoldersService: FilesFoldersService) {}
 
-  @Post()
-  create(@Body() createFilesFolderDto: CreateFilesFolderDto) {
-    return this.filesFoldersService.create(createFilesFolderDto);
+  @UseGuards(JwtAuthGuard)
+  @Post('/create')
+  create(@Body() createFilesFolderDto: CreateFilesFolderDto, @Req() request) {
+    return this.filesFoldersService.create(createFilesFolderDto.name, request.user.id);
   }
 
   @UseGuards(JwtAuthGuard)

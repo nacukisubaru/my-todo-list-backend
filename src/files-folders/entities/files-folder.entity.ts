@@ -3,7 +3,7 @@ import { User } from "src/users/users.model";
 
 @Table({tableName: 'files-folders'})
 export class FilesFolder extends Model<FilesFolder>{
-    @Column({ type: DataType.INTEGER, unique: true, autoIncrement: false, primaryKey: true })
+    @Column({ type: DataType.INTEGER, unique: true, autoIncrement: true, primaryKey: true })
     id: string;
 
     @Column({ type: DataType.STRING, allowNull: false })
@@ -11,5 +11,5 @@ export class FilesFolder extends Model<FilesFolder>{
 
     @ForeignKey(() => User)
     @Column({ type: DataType.INTEGER })
-    userId: string;
+    userId: number;
 }

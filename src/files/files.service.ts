@@ -24,7 +24,10 @@ export class FilesService {
   ) {}
 
   async createInFolder(createFileDto: CreateFileDto, file: IFile, userId: number) {
-    const {folderId, folderName} = createFileDto;
+    let {folderId, folderName} = createFileDto;
+    if (folderName === 'upload') {
+      folderName = '';
+    }
     const fileResult = this.createFile(file, folderName);
     const {filePathServer, parsePath} = fileResult;
 
@@ -42,7 +45,10 @@ export class FilesService {
     console.log({file})
     try {
         const fileName = uuid.v4() + '.jpg';
-        const filePath = path.resolve(__dirname, '..', 'static', folder);
+        let filePath = path.resolve('./public/upload/');
+        if (folder) {
+          filePath = filePath + folder;
+        }
         if(!fs.existsSync(filePath)) {
             fs.mkdirSync(filePath, {recursive: true});
         }
@@ -50,7 +56,10 @@ export class FilesService {
         fs.writeFileSync(link, file.buffer);
 
         const parsePath = path.parse(link);
-        const filePathServer = process.env.API_URL + '/' + folder +'/'+parsePath.name + parsePath.ext;
+        let filePathServer = process.env.API_URL + '/upload/' + parsePath.name + parsePath.ext;
+        if (folder) {
+          filePathServer = process.env.API_URL + '/upload/' + folder + '/' + parsePath.name + parsePath.ext;
+        }
         return {
           filePathServer,
           parsePath

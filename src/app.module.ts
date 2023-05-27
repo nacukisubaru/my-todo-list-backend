@@ -3,7 +3,7 @@ import { TodoListModule } from './todo-list/todo-list.module';
 import { SectionsListModule } from './sections-list/sections-list.module';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
+import { resolve } from 'path';
 import { TodoList } from './todo-list/entities/todo-list.entity';
 import { SectionsList } from './sections-list/entities/sections-list.entity';
 import { ConfigModule } from '@nestjs/config';
@@ -44,9 +44,20 @@ import { FilesFolder } from './files-folders/entities/files-folder.entity';
       ],
       autoLoadModels: true
     }),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, 'static'),
-    }),
+    ServeStaticModule.forRoot(
+      (() => {
+          const publicDir = resolve('./public/upload/');
+          const servePath = '/upload';
+
+          return {
+              rootPath: publicDir,
+              // serveRoot - if you want to see files on another controller,
+              // e.g.: http://localhost:8088/files/1.png
+              serveRoot: servePath,
+              exclude: ['/api*'],
+          };
+      })()
+  ),
     SectionsTodoListModule,
     TodoItemsJsonModule,
     FilesModule,

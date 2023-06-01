@@ -38,13 +38,18 @@ export class FilesFoldersService {
     return `This action updates a #${id} filesFolder`;
   }
 
-  async remove(id: number, name: string, userId: number) {
-    const removeFolder = await this.folderRepo.findAll({where: {userId, id}});
+  async remove(id: number, userId: number) {
+    const removeFolder = await this.folderRepo.findOne({where: {userId, id}});
+
     if (!removeFolder) {
-      new HttpException('Папки не существует!', HttpStatus.BAD_REQUEST);
+      return new HttpException('Папки не существует!', HttpStatus.BAD_REQUEST);
+    }
+    
+    if (removeFolder.name === 'upload') {
+      return new HttpException('Папка является корневой!', HttpStatus.BAD_REQUEST);
     }
 
-    let filePath = path.resolve('./public/upload/' + name);
+    let filePath = path.resolve('./public/upload/' + removeFolder.name);
     fs.rmdirSync(filePath, {recursive: true});
 
     await this.filesService.removeByFolderId(id);

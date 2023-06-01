@@ -31,8 +31,8 @@ export class FilesFoldersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('/remove')
-  remove(@Body() deleteDto: UpdateFilesFolderDto, @Req() request) {
-    return this.filesFoldersService.remove(deleteDto.id, deleteDto.name, request.user.id);
+  @Post('/remove/:id')
+  remove(@Param('id') id: string, @Req() request) {
+    return this.filesFoldersService.remove(parseInt(id), request.user.id);
   }
 }

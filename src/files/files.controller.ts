@@ -32,8 +32,10 @@ export class FilesController {
     return this.filesService.update(+id, updateFileDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.filesService.remove(+id);
+  @UseGuards(JwtAuthGuard)
+  @Delete('/remove/:id')
+  remove(@Param('id') id: string, @Req() req
+  ) {
+    return this.filesService.remove(+id, req.user.id);
   }
 }

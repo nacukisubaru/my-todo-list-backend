@@ -28,23 +28,22 @@ export class FilesService {
     if (folderName === 'upload') {
       folderName = '';
     }
-    const fileResult = this.createFile(file, folderName);
-    const {filePathServer, parsePath} = fileResult;
-
     const originalName = path.parse(file.originalname);
+    const fileResult = this.createFile(file, folderName, originalName.ext);
+    const {filePathServer, parsePath} = fileResult;
 
     return await this.filesRepo.create({
       folderId, 
       userId,
       path: filePathServer, 
-      name: originalName.name + parsePath.ext
+      name: parsePath.name + parsePath.ext, 
+      originalName: originalName.name + parsePath.ext
     })
   }
 
-  createFile(file: any, folder: string = '') {
-    console.log({file})
+  createFile(file: any, folder: string = '', extension: string) {
     try {
-        const fileName = uuid.v4() + '.jpg';
+        const fileName = uuid.v4() + extension;
         let filePath = path.resolve('./public/upload/');
         if (folder) {
           filePath = filePath + '/' + folder;
@@ -82,7 +81,27 @@ export class FilesService {
     return `This action updates a #${id} file`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} file`;
+  async remove(id: number, userId: number) {
+    const fileToRemove = await this.filesRepo.findOne({include:{all:true}, where: {userId, id}});
+    
+    if (!fileToRemove) {
+      new HttpException('Файла не существует!', HttpStatus.BAD_REQUEST);
+    }
+
+    let filePath = '';
+
+    if (fileToRemove.folder.name === 'upload') {
+      filePath = path.resolve('./public/upload/' + fileToRemove.name);
+    } else {
+      filePath = path.resolve('./public/upload/' + fileToRemove.folder.name + '/' + fileToRemove.name);
+    }
+
+    fs.unlinkSync(filePath);
+    return await this.filesRepo.destroy({where: {id}});
   }
+
+  async removeByFolderId(folderId: number) {
+    return await this.filesRepo.destroy({where: {folderId}});
+  }
+
 }

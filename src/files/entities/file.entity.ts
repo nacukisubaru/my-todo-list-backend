@@ -1,4 +1,4 @@
-import { Column, DataType, Table, Model, ForeignKey } from "sequelize-typescript";
+import { Column, DataType, Table, Model, ForeignKey, HasOne, BelongsTo } from "sequelize-typescript";
 import { FilesFolder } from "src/files-folders/entities/files-folder.entity";
 import { TodoList } from "src/todo-list/entities/todo-list.entity";
 import { User } from "src/users/users.model";
@@ -7,6 +7,9 @@ import { User } from "src/users/users.model";
 export class Files extends Model<Files>{
     @Column({ type: DataType.INTEGER, unique: true, autoIncrement: true, primaryKey: true })
     id: number;
+
+    @Column({ type: DataType.STRING, allowNull: false })
+    originalName: string;
 
     @Column({ type: DataType.STRING, allowNull: false })
     name: string;
@@ -25,4 +28,7 @@ export class Files extends Model<Files>{
     @ForeignKey(() => TodoList)
     @Column({ type: DataType.STRING })
     todoId: string;
+
+    @BelongsTo(() => FilesFolder)
+    folder: FilesFolder
 }

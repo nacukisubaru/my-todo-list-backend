@@ -12,5 +12,8 @@ import { JwtModule } from '@nestjs/jwt';
     SequelizeModule.forFeature([Files]),
     JwtModule
   ],
+  exports: [
+    FilesService
+  ]
 })
 export class FilesModule {}

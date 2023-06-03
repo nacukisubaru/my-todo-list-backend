@@ -16,7 +16,8 @@ export class FilesFoldersService {
   ) {}
 
   async create(folderName: string, userId: number) {
-    let filePath = path.resolve('./public/upload/' + folderName);
+    const rootPath = `/upload/${userId}/root`;
+    let filePath = path.resolve(`./public${rootPath}/` + folderName);
     if(!fs.existsSync(filePath)) {
       fs.mkdirSync(filePath, {recursive: true});
     } else {
@@ -27,6 +28,16 @@ export class FilesFoldersService {
   }
 
   async getListByUser(userId: number) {
+    const rootPath = `/upload/${userId}/root`;
+    let filePath = `./public${rootPath}`;
+    if(!fs.existsSync(filePath)) {
+      fs.mkdirSync(filePath, {recursive: true});
+      const foundRootFolder = await this.folderRepo.findOne({where: {name: 'root', userId}});
+      if (foundRootFolder) {
+        await this.folderRepo.create({name: 'root', userId});
+      }
+    }
+    
     return await this.folderRepo.findAll({where: {userId}});
   }
 
@@ -39,17 +50,18 @@ export class FilesFoldersService {
   }
 
   async remove(id: number, userId: number) {
+    const rootPath = `/upload/${userId}/root`;
     const removeFolder = await this.folderRepo.findOne({where: {userId, id}});
 
     if (!removeFolder) {
       return new HttpException('Папки не существует!', HttpStatus.BAD_REQUEST);
     }
     
-    if (removeFolder.name === 'upload') {
+    if (removeFolder.name === 'root') {
       return new HttpException('Папка является корневой!', HttpStatus.BAD_REQUEST);
     }
 
-    let filePath = path.resolve('./public/upload/' + removeFolder.name);
+    let filePath = path.resolve(`./public${rootPath}/` + removeFolder.name);
     fs.rmdirSync(filePath, {recursive: true});
 
     await this.filesService.removeByFolderId(id);

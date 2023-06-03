@@ -23,13 +23,13 @@ export class FilesService {
     @InjectModel(Files) private filesRepo: typeof Files
   ) {}
 
-  async createInFolder(createFileDto: CreateFileDto, file: IFile, userId: number) {
+  async createInFolder(createFileDto: CreateFileDto, file: IFile, userId: any) {
     let {folderId, folderName} = createFileDto;
-    if (folderName === 'upload') {
+    if (folderName === 'root') {
       folderName = '';
     }
     const originalName = path.parse(file.originalname);
-    const fileResult = this.createFile(file, folderName, originalName.ext);
+    const fileResult = this.createFile(file, folderName, originalName.ext, userId);
     const {filePathServer, parsePath} = fileResult;
 
     return await this.filesRepo.create({
@@ -41,10 +41,11 @@ export class FilesService {
     })
   }
 
-  createFile(file: any, folder: string = '', extension: string) {
+  createFile(file: any, folder: string = '', extension: string, userId: any) {
     try {
         const fileName = uuid.v4() + extension;
-        let filePath = path.resolve('./public/upload/');
+        const rootPath = `/upload/${userId}/root/`;
+        let filePath = path.resolve(`./public${rootPath}`);
         if (folder) {
           filePath = filePath + '/' + folder;
         }
@@ -55,9 +56,9 @@ export class FilesService {
         fs.writeFileSync(link, file.buffer);
 
         const parsePath = path.parse(link);
-        let filePathServer = process.env.API_URL + '/upload/' + parsePath.name + parsePath.ext;
+        let filePathServer = process.env.API_URL + rootPath + parsePath.name + parsePath.ext;
         if (folder) {
-          filePathServer = process.env.API_URL + '/upload/' + folder + '/' + parsePath.name + parsePath.ext;
+          filePathServer = process.env.API_URL + rootPath + folder + '/' + parsePath.name + parsePath.ext;
         }
         return {
           filePathServer,
@@ -83,17 +84,17 @@ export class FilesService {
 
   async remove(id: number, userId: number) {
     const fileToRemove = await this.filesRepo.findOne({include:{all:true}, where: {userId, id}});
-    
+    const rootPath = `/upload/${userId}/root`;
     if (!fileToRemove) {
       new HttpException('Файла не существует!', HttpStatus.BAD_REQUEST);
     }
 
     let filePath = '';
 
-    if (fileToRemove.folder.name === 'upload') {
-      filePath = path.resolve('./public/upload/' + fileToRemove.name);
+    if (fileToRemove.folder.name === 'root') {
+      filePath = path.resolve(`./public${rootPath}/` + fileToRemove.name);
     } else {
-      filePath = path.resolve('./public/upload/' + fileToRemove.folder.name + '/' + fileToRemove.name);
+      filePath = path.resolve(`./public${rootPath}` + fileToRemove.folder.name + '/' + fileToRemove.name);
     }
 
     fs.unlinkSync(filePath);

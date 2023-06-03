@@ -3,7 +3,7 @@ import { TodoListModule } from './todo-list/todo-list.module';
 import { SectionsListModule } from './sections-list/sections-list.module';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
+import { resolve } from 'path';
 import { TodoList } from './todo-list/entities/todo-list.entity';
 import { SectionsList } from './sections-list/entities/sections-list.entity';
 import { ConfigModule } from '@nestjs/config';
@@ -13,6 +13,10 @@ import { TodoItemsJsonModule } from './todo-items-json/todo-items-json.module';
 import { TodoItemsJson } from './todo-items-json/entities/todo-items-json.entity';
 import { User } from './users/users.model';
 import { UsersModule } from './users/users.module';
+import { FilesModule } from './files/files.module';
+import { FilesFoldersModule } from './files-folders/files-folders.module';
+import { Files } from './files/entities/file.entity';
+import { FilesFolder } from './files-folders/entities/files-folder.entity';
 
 @Module({
   imports: [
@@ -34,15 +38,30 @@ import { UsersModule } from './users/users.module';
         SectionsList,
         SectionsTodoList,
         TodoItemsJson,
-        User
+        User,
+        Files,
+        FilesFolder
       ],
       autoLoadModels: true
     }),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, 'static'),
-    }),
+    ServeStaticModule.forRoot(
+      (() => {
+          const publicDir = resolve('./public/upload/');
+          const servePath = '/upload';
+
+          return {
+              rootPath: publicDir,
+              // serveRoot - if you want to see files on another controller,
+              // e.g.: http://localhost:8088/files/1.png
+              serveRoot: servePath,
+              exclude: ['/api*'],
+          };
+      })()
+  ),
     SectionsTodoListModule,
     TodoItemsJsonModule,
+    FilesModule,
+    FilesFoldersModule,
   ],
   controllers: [],
   providers: [],

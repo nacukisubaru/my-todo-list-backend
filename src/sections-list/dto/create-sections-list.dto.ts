@@ -4,4 +4,5 @@ export class CreateSectionsListDto {
     sort: number;
     showSections: boolean;
     parentId: string;
+    isAnkiSection: boolean;
 }

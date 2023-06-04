@@ -29,6 +29,12 @@ export class FilesService {
       folderName = '';
     }
     const originalName = path.parse(file.originalname);
+    if (originalName.ext !== '.jpg' && originalName.ext !== '.png' &&
+      originalName.ext !== '.mp4' && 
+      originalName.ext !== '.webm' && originalName.ext !== '.jpeg') {
+        throw new HttpException(`Данный формат ${originalName.ext} не подходит для загрузки`, HttpStatus.BAD_REQUEST);
+    }
+
     const fileResult = this.createFile(file, folderName, originalName.ext, userId);
     const {filePathServer, parsePath} = fileResult;
 

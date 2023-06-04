@@ -13,7 +13,7 @@ export class TodoList extends Model<TodoList> {
     @Column({ type: DataType.STRING(16000), allowNull: false })
     description: string;
 
-    @Column({ type: DataType.STRING(16000) })
+    @Column({ type: DataType.STRING(16000), allowNull: false })
     descriptionTwo: string;
 
     @Column({ type: DataType.BOOLEAN, allowNull: false })

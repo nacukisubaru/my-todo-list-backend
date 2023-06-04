@@ -26,6 +26,6 @@ export class SectionsList extends Model<SectionsList>{
     @HasMany(() => SectionsTodoList)
     todosSections: SectionsTodoList[];
 
-    @Column({ type: DataType.BOOLEAN})
+    @Column({ type: DataType.BOOLEAN, allowNull: false})
     isAnkiSection: boolean;
 }

@@ -32,10 +32,7 @@ export class FilesFoldersService {
     let filePath = `./public${rootPath}`;
     if(!fs.existsSync(filePath)) {
       fs.mkdirSync(filePath, {recursive: true});
-      const foundRootFolder = await this.folderRepo.findOne({where: {name: 'root', userId}});
-      if (!foundRootFolder) {
-        await this.folderRepo.create({name: 'root', userId});
-      }
+      await this.folderRepo.create({name: 'root', userId});
     }
     
     return await this.folderRepo.findAll({where: {userId}});

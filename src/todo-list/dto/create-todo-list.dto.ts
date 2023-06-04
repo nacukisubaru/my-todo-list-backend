@@ -3,6 +3,7 @@ export class CreateTodoListDto {
     name: string;
     parentId: string;
     description: string;
+    descriptionTwo: string;
     showTasks: boolean;
     sort: number;
     isComplete:boolean

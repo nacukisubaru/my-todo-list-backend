@@ -43,7 +43,10 @@ export class TodoListService {
             name: todo.dataValues.name,
             parentId: todo.dataValues.sectionId,
             sectionId: todo.dataValues.sectionId,
+            nextTodoId: "",
+            prevTodoId: "",
             description: todo.dataValues.description,
+            descriptionTwo: todo.dataValues.descriptionTwo,
             sort: todo.dataValues.sort,
             type: 'task',
             index: 0,
@@ -65,7 +68,10 @@ export class TodoListService {
             name: todo.dataValues.name,
             parentId: todo.dataValues.parentId,
             sectionId: todo.dataValues.sectionId,
+            nextTodoId: "",
+            prevTodoId: "",
             description: todo.dataValues.description,
+            descriptionTwo: todo.dataValues.descriptionTwo,
             sort: todo.dataValues.sort,
             type: 'task',
             index: 0,
@@ -95,7 +101,12 @@ export class TodoListService {
           todo.items.map((item, index) => {
             if (todo.items[index - 1]) {
               item.index = todo.items[index - 1].index + 1;
+              item.prevTodoId = todo.items[index - 1].id;
             }
+            if (todo.items[index + 1]) {
+              item.nextTodoId = todo.items[index + 1].id;
+            }
+         
           })
           if (todo.items.length) {
             recursiveBuildTodoList(todo.items);
@@ -110,6 +121,10 @@ export class TodoListService {
       section.items.map((item, index) => {
         if (section.items[index - 1]) {
           item.index = section.items[index - 1].index + 1;
+          item.prevTodoId = section.items[index - 1].id;
+        }
+        if (section.items[index + 1]) {
+          item.nextTodoId = section.items[index + 1].id;
         }
       });
     });
@@ -171,8 +186,8 @@ export class TodoListService {
   }
 
   async update(updateTodoListDto: UpdateTodoListDto) {
-    const {name, description, showTasks, isComplete} = updateTodoListDto;
-    return await this.todoListRepo.update({name, description, showTasks, isComplete}, {where: {id: updateTodoListDto.id}});
+    const {name, description, descriptionTwo, showTasks, isComplete} = updateTodoListDto;
+    return await this.todoListRepo.update({name, description, descriptionTwo, showTasks, isComplete}, {where: {id: updateTodoListDto.id}});
   }
 
   findAll() {

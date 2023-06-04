@@ -35,6 +35,7 @@ export class SectionsListService {
         name: section.name,
         showSections: section.showSections,
         sort: section.sort,
+        isAnkiSection: section.isAnkiSection,
         items: []
       };
 
@@ -45,6 +46,7 @@ export class SectionsListService {
           parentId: section.dataValues.parentId,
           sort: section.dataValues.sort,
           showSections: section.dataValues.showSections,
+          isAnkiSection: section.isAnkiSection,
           items: []
         });
       }

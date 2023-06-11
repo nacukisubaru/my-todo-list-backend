@@ -17,6 +17,7 @@ import { FilesModule } from './files/files.module';
 import { FilesFoldersModule } from './files-folders/files-folders.module';
 import { Files } from './files/entities/file.entity';
 import { FilesFolder } from './files-folders/entities/files-folder.entity';
+import { DictionaryModule } from './dictionary/dictionary.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { FilesFolder } from './files-folders/entities/files-folder.entity';
     TodoItemsJsonModule,
     FilesModule,
     FilesFoldersModule,
+    DictionaryModule,
   ],
   controllers: [],
   providers: [],

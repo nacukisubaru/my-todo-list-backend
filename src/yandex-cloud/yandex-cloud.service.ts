@@ -6,8 +6,8 @@ const { ai: { translate_translation_service: { TranslateRequest, TranslateReques
 @Injectable()
 export class YandexCloudService {
 
-    private AUTH_TOKEN = process.env.yandexFolderId;
-    private FOLDER_ID = process.env.yandexAuthToken;
+    private AUTH_TOKEN = process.env.yandexAuthToken;
+    private FOLDER_ID = process.env.yandexFolderId;
     private client = null;
 
     async translate(word: string, targetLanguageCode: string) {

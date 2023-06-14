@@ -18,6 +18,7 @@ import { FilesFoldersModule } from './files-folders/files-folders.module';
 import { Files } from './files/entities/file.entity';
 import { FilesFolder } from './files-folders/entities/files-folder.entity';
 import { DictionaryModule } from './dictionary/dictionary.module';
+import { YandexCloudModule } from './yandex-cloud/yandex-cloud.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { DictionaryModule } from './dictionary/dictionary.module';
     FilesModule,
     FilesFoldersModule,
     DictionaryModule,
+    YandexCloudModule,
   ],
   controllers: [],
   providers: [],

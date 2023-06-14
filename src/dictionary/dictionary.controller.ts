@@ -9,7 +9,7 @@ export class DictionaryController {
   constructor(private readonly dictionaryService: DictionaryService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Post()
+  @Post('/create')
   create(@Body() createDictionaryDto: CreateDictionaryDto, @Req() request) {
     return this.dictionaryService.create(createDictionaryDto, request.user.id);
   }

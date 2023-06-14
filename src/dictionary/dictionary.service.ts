@@ -18,13 +18,12 @@ export class DictionaryService {
 
   async getListByUser(userId: number, page: number, limitPage: number = defaultLimitPage) {
     const query: any = paginate({where: {userId}}, page, limitPage);
-  
+    query.order = [['createdAt', 'DESC']];
+
     const dictionaryList = await this.dictionaryRepo.findAndCountAll(query);
     if (dictionaryList.rows.length <= 0) {
       throw new HttpException('Page not found', HttpStatus.NOT_FOUND);
     }
-
-    query.order = ['createdAt', 'desc'];
 
     const lastPage = Math.ceil(dictionaryList.count / limitPage) - 1;
     let nextPage = 0;

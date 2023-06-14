@@ -19,6 +19,9 @@ import { Files } from './files/entities/file.entity';
 import { FilesFolder } from './files-folders/entities/files-folder.entity';
 import { DictionaryModule } from './dictionary/dictionary.module';
 import { YandexCloudModule } from './yandex-cloud/yandex-cloud.module';
+import { DictionarySettingsModule } from './dictionary-settings/dictionary-settings.module';
+import { DictionarySettings } from './dictionary-settings/entities/dictionary-setting.entity';
+import { Dictionary } from './dictionary/entities/dictionary.entity';
 
 @Module({
   imports: [
@@ -42,7 +45,9 @@ import { YandexCloudModule } from './yandex-cloud/yandex-cloud.module';
         TodoItemsJson,
         User,
         Files,
-        FilesFolder
+        FilesFolder,
+        DictionarySettings,
+        Dictionary
       ],
       autoLoadModels: true
     }),
@@ -66,6 +71,7 @@ import { YandexCloudModule } from './yandex-cloud/yandex-cloud.module';
     FilesFoldersModule,
     DictionaryModule,
     YandexCloudModule,
+    DictionarySettingsModule,
   ],
   controllers: [],
   providers: [],

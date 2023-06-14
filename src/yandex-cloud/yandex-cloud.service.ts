@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Session, cloudApi, serviceClients } from '@yandex-cloud/nodejs-sdk';
 import { DictionarySettingsService } from 'src/dictionary-settings/dictionary-settings.service';
+import { LangCodesISO } from 'src/helpers/languageHelper';
 
 const { ai: { translate_translation_service: { TranslateRequest, TranslateRequest_Format: Format, ListLanguagesRequest } } } = cloudApi;
 
@@ -26,6 +27,7 @@ export class YandexCloudService {
             throw new HttpException('Выбраный язык не поддерживается', HttpStatus.BAD_REQUEST);
         }
         await this.dictionarySettingsService.setDefaultLanguage(userId, targetLanguageCode);
+        
         const response = await client.translate(TranslateRequest.fromPartial({
             targetLanguageCode,
             format: Format.PLAIN_TEXT,
@@ -54,12 +56,16 @@ export class YandexCloudService {
         if(!response) {
             throw new HttpException('Ошибка повторите позднее', HttpStatus.BAD_REQUEST);
         }
-        
-        return response.languages.filter((lang) => {
-            if (lang.name !== "") {
-                return lang;
+
+        const languages = [];
+        response.languages.map((language) => {
+            if (language.name !== "") {
+            const lang = {...language, isoName: LangCodesISO[language.code]}
+                languages.push(lang);
             }
-        });
+        })
+        
+        return languages;
     }
 
     async createSession() {

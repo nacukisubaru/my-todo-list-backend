@@ -22,6 +22,9 @@ import { YandexCloudModule } from './yandex-cloud/yandex-cloud.module';
 import { DictionarySettingsModule } from './dictionary-settings/dictionary-settings.module';
 import { DictionarySettings } from './dictionary-settings/entities/dictionary-setting.entity';
 import { Dictionary } from './dictionary/entities/dictionary.entity';
+import { DictionaryExamplesModule } from './dictionary-examples/dictionary-examples.module';
+import { DictionaryExample } from './dictionary-examples/entities/dictionary-example.entity';
+import { DictionariesExamples } from './dictionary-examples/entities/dictionaries-examples.entity';
 
 @Module({
   imports: [
@@ -47,7 +50,9 @@ import { Dictionary } from './dictionary/entities/dictionary.entity';
         Files,
         FilesFolder,
         DictionarySettings,
-        Dictionary
+        Dictionary,
+        DictionaryExample,
+        DictionariesExamples
       ],
       autoLoadModels: true
     }),
@@ -72,6 +77,7 @@ import { Dictionary } from './dictionary/entities/dictionary.entity';
     DictionaryModule,
     YandexCloudModule,
     DictionarySettingsModule,
+    DictionaryExamplesModule,
   ],
   controllers: [],
   providers: [],

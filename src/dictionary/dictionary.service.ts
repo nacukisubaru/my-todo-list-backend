@@ -17,7 +17,7 @@ export class DictionaryService {
   }
 
   async getListByUser(userId: number, page: number, limitPage: number = defaultLimitPage) {
-    const query: any = paginate({where: {userId}}, page, limitPage);
+    const query: any = paginate({include: {nested: true, all: true}, where: {userId}}, page, limitPage);
     query.order = [['createdAt', 'DESC']];
 
     const dictionaryList = await this.dictionaryRepo.findAndCountAll(query);

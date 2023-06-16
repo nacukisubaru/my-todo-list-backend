@@ -1,26 +1,44 @@
 import { Injectable } from '@nestjs/common';
 import { CreateDictionaryExampleDto } from './dto/create-dictionary-example.dto';
 import { UpdateDictionaryExampleDto } from './dto/update-dictionary-example.dto';
+import { InjectModel } from '@nestjs/sequelize';
+import { DictionaryExample } from './entities/dictionary-example.entity';
+import { DictionariesExamples } from './entities/dictionaries-examples.entity';
+import { YandexCloudService } from 'src/yandex-cloud/yandex-cloud.service';
 
 @Injectable()
 export class DictionaryExamplesService {
-  create(createDictionaryExampleDto: CreateDictionaryExampleDto) {
-    return 'This action adds a new dictionaryExample';
+
+  constructor(
+    @InjectModel(DictionaryExample) private dictionaryExampleRepo: typeof DictionaryExample,
+    @InjectModel(DictionariesExamples) private dictionariesExamplesRepo: typeof DictionariesExamples,
+    private yandexCloudSerivce: YandexCloudService
+  ) {}
+
+  async addExampleAndTranslate(dictionaryExampleDto: CreateDictionaryExampleDto, userId: number) {
+    const {text, targetLanguageCode, type, dictionaryId} = dictionaryExampleDto;
+    const example = await this.dictionaryExampleRepo.findOne({where: {originalText: text}});
+
+    if (example) {
+      await this.dictionariesExamplesRepo.create({dictionaryExampleId: example.id, dictionaryId, userId});
+      return example.translatedText;
+    }
+
+    const translate = await this.yandexCloudSerivce.translate(text, targetLanguageCode, userId);
+    if (translate) {
+      const dictionaryExample = await this.dictionaryExampleRepo.create({
+        originalText: translate.originalWord, 
+        translatedText: translate.translatedWord,
+        exampleType: type,
+        showTranslate: false,
+        languageOriginal: 'en',
+        languageTranslation: targetLanguageCode,
+        userId
+      });
+      
+      await this.dictionariesExamplesRepo.create({dictionaryExampleId: dictionaryExample.id, dictionaryId, userId});
+      return translate;
+    }
   }
 
-  findAll() {
-    return `This action returns all dictionaryExamples`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} dictionaryExample`;
-  }
-
-  update(id: number, updateDictionaryExampleDto: UpdateDictionaryExampleDto) {
-    return `This action updates a #${id} dictionaryExample`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} dictionaryExample`;
-  }
 }

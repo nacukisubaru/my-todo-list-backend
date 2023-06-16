@@ -10,6 +10,9 @@ import { JwtModule } from '@nestjs/jwt';
   imports: [
     DictionarySettingsModule,
     JwtModule
+  ],
+  exports: [
+    YandexCloudService
   ]
 })
 export class YandexCloudModule {}

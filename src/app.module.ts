@@ -17,6 +17,14 @@ import { FilesModule } from './files/files.module';
 import { FilesFoldersModule } from './files-folders/files-folders.module';
 import { Files } from './files/entities/file.entity';
 import { FilesFolder } from './files-folders/entities/files-folder.entity';
+import { DictionaryModule } from './dictionary/dictionary.module';
+import { YandexCloudModule } from './yandex-cloud/yandex-cloud.module';
+import { DictionarySettingsModule } from './dictionary-settings/dictionary-settings.module';
+import { DictionarySettings } from './dictionary-settings/entities/dictionary-setting.entity';
+import { Dictionary } from './dictionary/entities/dictionary.entity';
+import { DictionaryExamplesModule } from './dictionary-examples/dictionary-examples.module';
+import { DictionaryExample } from './dictionary-examples/entities/dictionary-example.entity';
+import { DictionariesExamples } from './dictionary-examples/entities/dictionaries-examples.entity';
 
 @Module({
   imports: [
@@ -40,7 +48,11 @@ import { FilesFolder } from './files-folders/entities/files-folder.entity';
         TodoItemsJson,
         User,
         Files,
-        FilesFolder
+        FilesFolder,
+        DictionarySettings,
+        Dictionary,
+        DictionaryExample,
+        DictionariesExamples
       ],
       autoLoadModels: true
     }),
@@ -62,6 +74,10 @@ import { FilesFolder } from './files-folders/entities/files-folder.entity';
     TodoItemsJsonModule,
     FilesModule,
     FilesFoldersModule,
+    DictionaryModule,
+    YandexCloudModule,
+    DictionarySettingsModule,
+    DictionaryExamplesModule,
   ],
   controllers: [],
   providers: [],

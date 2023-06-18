@@ -13,7 +13,6 @@ export class FilesController {
   @UseInterceptors(FileInterceptor('image'))
   @Post('/create-file-in-folder/')
   create(@Body() createFileDto: CreateFileDto, @UploadedFile() image, @Req() req) {
-    console.log({image})
     return this.filesService.createInFolder(createFileDto, image, req.user.id);
   }
 

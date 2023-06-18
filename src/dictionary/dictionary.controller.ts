@@ -1,12 +1,12 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query } from '@nestjs/common';
-import { DictionaryService } from './dictionary.service';
+import { DictionaryService, IFilterDictionary, studyStageType } from './dictionary.service';
 import { CreateDictionaryDto } from './dto/create-dictionary.dto';
 import { UpdateDictionaryDto } from './dto/update-dictionary.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('dictionary')
 export class DictionaryController {
-  constructor(private readonly dictionaryService: DictionaryService) {}
+  constructor(private readonly dictionaryService: DictionaryService) { }
 
   @UseGuards(JwtAuthGuard)
   @Post('/create')
@@ -16,8 +16,26 @@ export class DictionaryController {
 
   @UseGuards(JwtAuthGuard)
   @Get('/get-list-by-user')
-  getListByUser(@Req() request, @Query('page') page: string) {
-    return this.dictionaryService.getListByUser(request.user.id, Number(page));
+  getListByUser(
+    @Req() request,
+    @Query('languageOriginal') languageOriginal: string,
+    @Query('languageTranslation') languageTranslation: string,
+    @Query('searchByOriginal') searchByOriginal: string,
+    @Query('searchByTranslate') searchByTranslate: string,
+    @Query('studyStage') studyStage: studyStageType,
+    @Query('page') page: any
+  ) {
+    if (!page) {
+      page = 0;
+    }
+    const filter: IFilterDictionary = { 
+      languageOriginal, 
+      languageTranslation, 
+      studyStage, 
+      searchByOriginal, 
+      searchByTranslate 
+    };
+    return this.dictionaryService.getListByUser(request.user.id, Number(page), filter);
   }
 
   @Get(':id')
@@ -25,9 +43,9 @@ export class DictionaryController {
     return this.dictionaryService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDictionaryDto: UpdateDictionaryDto) {
-    return this.dictionaryService.update(+id, updateDictionaryDto);
+  @Post('/update-study-stage')
+  update(@Body() updateDictionaryDto: UpdateDictionaryDto) {
+    return this.dictionaryService.updateStudyStage(updateDictionaryDto.id, updateDictionaryDto.studyStage);
   }
 
   @Delete(':id')

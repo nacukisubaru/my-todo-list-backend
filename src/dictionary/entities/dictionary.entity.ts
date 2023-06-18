@@ -20,8 +20,8 @@ export class Dictionary extends Model<Dictionary>{
     @Column({ type: DataType.STRING, allowNull: false })
     languageTranslation: string;
 
-    @Column({ type: DataType.BOOLEAN, allowNull: false})
-    isStudy: boolean;
+    @Column({ type: DataType.STRING, allowNull: false})
+    studyStage: string;
 
     @BelongsToMany(() => DictionaryExample, () => DictionariesExamples)
     dictionaryExamples: DictionaryExample[]

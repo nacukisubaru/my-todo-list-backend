@@ -7,9 +7,15 @@ export class DictionarySettings extends Model<DictionarySettings>{
     id: number;
 
     @Column({ type: DataType.STRING, allowNull: false })
+    sourceLanguage: string;
+
+    @Column({ type: DataType.STRING, allowNull: false })
     targetLanguage: string;
 
     @ForeignKey(() => User)
     @Column({ type: DataType.INTEGER, allowNull: false })
     userId: number;
+
+    @Column({ type: DataType.BOOLEAN, allowNull: false })
+    isActive: boolean;
 }

@@ -14,14 +14,14 @@ export class DictionarySettingsService {
   }
 
   async createDefaultSetting(userId: number) {
-    return await this.dictionarySettingsRepo.create({userId, targetLanguage: 'en'});
+    return await this.dictionarySettingsRepo.create({userId, sourceLanguage: 'ru' ,targetLanguage: 'en', isActive: true});
   }
 
   async getSettings(userId: number) {
-    const settings = await this.dictionarySettingsRepo.findOne({where: {userId}});
+    const settings = await this.dictionarySettingsRepo.findOne({where: {userId, isActive: true}});
     if (!settings) {
       await this.createDefaultSetting(userId);
-      return await this.dictionarySettingsRepo.findOne({where: {userId}});
+      return await this.dictionarySettingsRepo.findOne({where: {userId, isActive: true}});
     }
     return settings;
   }

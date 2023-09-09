@@ -24,7 +24,9 @@ export class DictionaryExamplesService {
       return example.translatedText;
     }
 
-    const translate = await this.yandexCloudSerivce.translate(text, targetLanguageCode, userId);
+    const translate = await this.yandexCloudSerivce.translate(text, targetLanguageCode, 
+      //userId
+      );
     if (translate) {
       const dictionaryExample = await this.dictionaryExampleRepo.create({
         originalText: translate.originalWord, 

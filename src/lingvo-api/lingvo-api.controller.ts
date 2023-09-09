@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req, UseGuards } from '@nestjs/common';
 import { LingvoApiService } from './lingvo-api.service';
 import { CreateLingvoApiDto } from './dto/create-lingvo-api.dto';
 import { UpdateLingvoApiDto } from './dto/update-lingvo-api.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('lingvo-api')
 export class LingvoApiController {
@@ -18,8 +19,14 @@ export class LingvoApiController {
   }
 
   @Get('/short-translate')
-  shortTranslateWord(@Query('word') word: string) {
-    return this.lingvoApiService.shortTranslateWord(word);
+  shortTranslateWord(@Query('word') word: string, @Query('sourceLang') sourceLang: string, @Query('targetLang') targetLang: string) {
+    return this.lingvoApiService.shortTranslateWord(word, sourceLang, targetLang);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/translate')
+  translate(@Query('word') word: string, @Req() request) {
+    return this.lingvoApiService.translate(word, request.user.id);
   }
 
   @Get()

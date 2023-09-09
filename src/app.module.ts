@@ -25,6 +25,7 @@ import { Dictionary } from './dictionary/entities/dictionary.entity';
 import { DictionaryExamplesModule } from './dictionary-examples/dictionary-examples.module';
 import { DictionaryExample } from './dictionary-examples/entities/dictionary-example.entity';
 import { DictionariesExamples } from './dictionary-examples/entities/dictionaries-examples.entity';
+import { LingvoApiModule } from './lingvo-api/lingvo-api.module';
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { DictionariesExamples } from './dictionary-examples/entities/dictionarie
     YandexCloudModule,
     DictionarySettingsModule,
     DictionaryExamplesModule,
+    LingvoApiModule,
   ],
   controllers: [],
   providers: [],

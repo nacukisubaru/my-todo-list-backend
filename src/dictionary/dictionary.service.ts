@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Dictionary } from './entities/dictionary.entity';
 import { defaultLimitPage, paginate } from 'src/helpers/paginationHelper';
 import { Op } from 'sequelize';
+import { DictionarySettingsService } from 'src/dictionary-settings/dictionary-settings.service';
 
 export type studyStageType = "NOT_STUDIED" | "BEING_STUDIED" | "STUDIED";
 export interface IFilterDictionary {
@@ -23,11 +24,22 @@ export class DictionaryService {
   ) { }
 
   async create(createDictionaryDto: CreateDictionaryDto, userId: number) {
-    const isExistWord = await this.dictionaryRepo.findOne({ where: { originalWord: createDictionaryDto.originalWord, translatedWord: createDictionaryDto.translatedWord } });
+    const isExistWord = await this.dictionaryRepo.findOne({ 
+      where: { 
+        originalWord: createDictionaryDto.originalWord, 
+        translatedWord: createDictionaryDto.translatedWord 
+      }
+    });
+    
     if (isExistWord) {
       throw new HttpException('Слово уже есть в словаре', HttpStatus.BAD_REQUEST);
     }
-    return await this.dictionaryRepo.create({ ...createDictionaryDto, studyStage: 'NOT_STUDIED', userId });
+    
+    return await this.dictionaryRepo.create({
+      ...createDictionaryDto,
+      studyStage: 'BEING_STUDIED', 
+      userId 
+    });
   }
 
   async getListByUser(userId: number, page: number, filter: IFilterDictionary = {}, limitPage: number = defaultLimitPage) {

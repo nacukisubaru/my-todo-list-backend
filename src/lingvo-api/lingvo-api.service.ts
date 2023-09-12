@@ -72,7 +72,7 @@ export class LingvoApiService {
   }
 
   async translate(word: string, userId: number) {
-    const dictionarySettings = await this.dictionarySettingsService.getSettings(userId);
+    const dictionarySettings = await this.dictionarySettingsService.getActiveSettings(userId);
     const lang = await this.yandexService.getLanguage(word);
     
     let sourceLang = '';

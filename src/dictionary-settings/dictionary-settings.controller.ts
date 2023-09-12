@@ -7,8 +7,14 @@ export class DictionarySettingsController {
   constructor(private readonly dictionarySettingsService: DictionarySettingsService) {}
 
   @UseGuards(JwtAuthGuard)
+  @Get('/get-active-settings-by-user')
+  getActiveSettingsByUser(@Req() request) {
+    return this.dictionarySettingsService.getActiveSettings(request.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('/get-settings-by-user')
-  getSettingsByUser(@Req() request) {
+  getAllSettings(@Req() request) {
     return this.dictionarySettingsService.getSettings(request.user.id);
   }
 }

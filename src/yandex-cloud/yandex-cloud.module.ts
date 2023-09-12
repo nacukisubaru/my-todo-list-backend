@@ -8,7 +8,6 @@ import { JwtModule } from '@nestjs/jwt';
   controllers: [YandexCloudController],
   providers: [YandexCloudService],
   imports: [
-    DictionarySettingsModule,
     JwtModule
   ],
   exports: [

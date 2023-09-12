@@ -1,6 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Session, cloudApi, serviceClients } from '@yandex-cloud/nodejs-sdk';
-import { DictionarySettingsService } from 'src/dictionary-settings/dictionary-settings.service';
 import { LangCodesISO } from 'src/helpers/languageHelper';
 
 const { ai: { translate_translation_service: { TranslateRequest, TranslateRequest_Format: Format, ListLanguagesRequest, DetectLanguageRequest } } } = cloudApi;
@@ -84,7 +83,7 @@ export class YandexCloudService {
         const languages = [];
         response.languages.map((language) => {
             if (language.name !== "") {
-            const lang = {...language, isoName: LangCodesISO[language.code]}
+                const lang = {...language, isoName: LangCodesISO[language.code]}
                 languages.push(lang);
             }
         })

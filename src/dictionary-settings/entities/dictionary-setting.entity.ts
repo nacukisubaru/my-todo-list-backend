@@ -11,6 +11,12 @@ export class DictionarySettings extends Model<DictionarySettings>{
 
     @Column({ type: DataType.STRING, allowNull: false })
     targetLanguage: string;
+    
+    @Column({ type: DataType.STRING, allowNull: false })
+    sourceISO: string;
+
+    @Column({ type: DataType.STRING, allowNull: false })
+    targetISO: string;
 
     @ForeignKey(() => User)
     @Column({ type: DataType.INTEGER, allowNull: false })

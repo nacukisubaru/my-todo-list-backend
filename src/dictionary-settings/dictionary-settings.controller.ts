@@ -1,6 +1,7 @@
-import { Controller, Get, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Post, Body } from '@nestjs/common';
 import { DictionarySettingsService } from './dictionary-settings.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CreateDictionarySettingFromCodesDto } from './dto/create-dictionary-settings-from-codes.dto';
 
 @Controller('dictionary-settings')
 export class DictionarySettingsController {
@@ -16,5 +17,11 @@ export class DictionarySettingsController {
   @Get('/get-settings-by-user')
   getAllSettings(@Req() request) {
     return this.dictionarySettingsService.getSettings(request.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/create-settings')
+  createSettings(@Body() createDictionarySettingsFromCodesDto: CreateDictionarySettingFromCodesDto, @Req() request) {
+    return this.dictionarySettingsService.createSettingsFromArrayCodes(createDictionarySettingsFromCodesDto, request.user.id);
   }
 }

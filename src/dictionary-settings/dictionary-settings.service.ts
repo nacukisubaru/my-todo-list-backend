@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { DictionarySettings } from './entities/dictionary-setting.entity';
-import { YandexCloudService } from 'src/yandex-cloud/yandex-cloud.service';
 import { LangCodesISO } from 'src/helpers/languageHelper';
 import { CreateDictionarySettingDto } from './dto/create-dictionary-setting.dto';
+import { CreateDictionarySettingFromCodesDto } from './dto/create-dictionary-settings-from-codes.dto';
 
 @Injectable()
 export class DictionarySettingsService {
@@ -33,15 +33,64 @@ export class DictionarySettingsService {
 
   async getSettings(userId: number) {
     const settings = await this.dictionarySettingsRepo.findAll({where: {userId}});
+    let langsForStudy = [];
+    let studyLangs = [];
     
-    const langsForStudy = settings.map((setting) => {
-      return {code: setting.sourceLanguage, isoName: setting.sourceISO};
+    settings.map((setting) => {
+      if (!langsForStudy.includes(setting.sourceLanguage)) {
+        langsForStudy.push(setting.sourceLanguage);
+      }
+
+      if (!studyLangs.includes(setting.targetLanguage)) {
+        studyLangs.push(setting.targetLanguage);
+      }
     });
 
-    const studyLangs = settings.map((setting) => {
-      return {code: setting.targetLanguage, isoName: setting.targetISO};
+    langsForStudy = langsForStudy.map((lang) => {
+     return {code:lang, isoName: LangCodesISO[lang]};
     });
 
+    studyLangs = studyLangs.map((lang) => {
+      return {code:lang, isoName: LangCodesISO[lang]};
+    });
+    
     return {settings, langsForStudy, studyLangs};
+  }
+
+  async createSettingsFromArrayCodes(createDictionarySettingsFromCodesDto: CreateDictionarySettingFromCodesDto, userId: number) {
+    let sourceCodesList = createDictionarySettingsFromCodesDto.sourceLangCodes;
+    let targetCodesList = createDictionarySettingsFromCodesDto.targetLangCodes;
+    
+    const settings = await this.getSettings(userId);
+    const codesList = [];
+
+    if (targetCodesList.length && !sourceCodesList.length) {
+      sourceCodesList = settings.langsForStudy.map(lang => lang.code);
+    }
+
+    if (sourceCodesList.length && !targetCodesList.length) {
+      targetCodesList = settings.studyLangs.map(lang => lang.code);
+    }
+
+    targetCodesList.map((targetCode) => {
+      sourceCodesList.map(sourceCode => {
+        const sourceISO = LangCodesISO[sourceCode];
+        const targetISO = LangCodesISO[targetCode];
+        const codeObj = {sourceLanguage: sourceCode, targetLanguage: targetCode, sourceISO, targetISO, isActive: false, userId};
+        let accessPush = true;
+        settings.settings.map((setting) => {
+          if (setting.sourceLanguage === codeObj.sourceLanguage && setting.targetLanguage === codeObj.targetLanguage) {
+            accessPush = false;
+          }
+        })
+        if (accessPush) {
+          codesList.push(codeObj);
+        }
+        
+      });
+    });
+
+    await this.dictionarySettingsRepo.bulkCreate(codesList);
+    return codesList;
   }
 }

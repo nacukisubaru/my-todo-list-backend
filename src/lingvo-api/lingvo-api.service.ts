@@ -77,21 +77,13 @@ export class LingvoApiService {
     
     let sourceLang = '';
     let targetLang = '';
-
-    if (lang !== dictionarySettings.sourceLanguage && lang !== dictionarySettings.targetLanguage) {
-      throw new HttpException({
-        message: 'Выбранный язык не соответствует языкам установленным в настройках. Измените настройки языка.', 
-        errorCode: 'settingsNotSupportLang',
-        statusCode: HttpStatus.BAD_REQUEST
-      }, HttpStatus.BAD_REQUEST);
-    }
     
     if (lang === dictionarySettings.sourceLanguage) {
-      sourceLang = dictionarySettings.sourceLanguage;
+      sourceLang = lang;
       targetLang = dictionarySettings.targetLanguage;
     } else {
       sourceLang = dictionarySettings.targetLanguage;
-      targetLang = dictionarySettings.sourceLanguage;
+      targetLang = lang;
     }
 
     try {

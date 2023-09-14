@@ -4,6 +4,7 @@ import { DictionarySettings } from './entities/dictionary-setting.entity';
 import { LangCodesISO } from 'src/helpers/languageHelper';
 import { CreateDictionarySettingDto } from './dto/create-dictionary-setting.dto';
 import { CreateDictionarySettingFromCodesDto } from './dto/create-dictionary-settings-from-codes.dto';
+import { setActiveSettingDto } from './dto/set-active-setting.dto';
 
 @Injectable()
 export class DictionarySettingsService {
@@ -22,10 +23,19 @@ export class DictionarySettingsService {
     return await this.dictionarySettingsRepo.create({ ...createSettingsDto, sourceISO, targetISO, userId, isActive: true });
   }
 
+  async setDefaultSettings(userId: number) {
+    const settingsRuEn = await this.dictionarySettingsRepo.findOne({ where: { sourceLanguage: 'ru', targetLanguage: 'en', userId } });
+    if (settingsRuEn) {
+      return await this.setActiveSetting({sourceLanguage: settingsRuEn.sourceLanguage, targetLanguage: settingsRuEn.targetLanguage}, userId);
+    } else {
+      return await this.createDefaultSetting({ sourceLanguage: 'ru', targetLanguage: 'en' }, userId);
+    }
+  }
+
   async getActiveSettings(userId: number) {
     const settings = await this.dictionarySettingsRepo.findOne({ where: { userId, isActive: true } });
     if (!settings) {
-      await this.createDefaultSetting({ sourceLanguage: 'ru', targetLanguage: 'en' }, userId);
+      await this.setDefaultSettings(userId);   
       return await this.dictionarySettingsRepo.findOne({ where: { userId, isActive: true } });
     }
     return settings;
@@ -57,9 +67,18 @@ export class DictionarySettingsService {
     return { settings, langsForStudy, studyLangs };
   }
 
-  async createSettingsFromArrayCodes(createDictionarySettingsFromCodesDto: CreateDictionarySettingFromCodesDto, userId: number) {
+  async createSettingsFromArrayCodes(createDictionarySettingsFromCodesDto: CreateDictionarySettingFromCodesDto, userId: number): Promise<DictionarySettings[]> 
+  {
     let sourceCodesList = createDictionarySettingsFromCodesDto.sourceLangCodes;
     let targetCodesList = createDictionarySettingsFromCodesDto.targetLangCodes;
+
+    if (!sourceCodesList.length || !targetCodesList.length) {
+      throw new HttpException({
+        message: 'sourceCodesList или targetCodesList не переданы',
+        errorCode: 'paramsMissing',
+        statusCode: HttpStatus.BAD_REQUEST
+      }, HttpStatus.BAD_REQUEST);
+    }
 
     const settings = await this.getSettings(userId);
     const codesList = [];
@@ -77,28 +96,37 @@ export class DictionarySettingsService {
         const sourceISO = LangCodesISO[sourceCode];
         const targetISO = LangCodesISO[targetCode];
         const codeObj = { sourceLanguage: sourceCode, targetLanguage: targetCode, sourceISO, targetISO, isActive: false, userId };
-        let accessPush = true;
-        settings.settings.map((setting) => {
-          if (setting.sourceLanguage === codeObj.sourceLanguage && setting.targetLanguage === codeObj.targetLanguage) {
-            accessPush = false;
-          }
-        })
-        if (accessPush) {
           codesList.push(codeObj);
-        }
-
       });
     });
 
-    await this.dictionarySettingsRepo.bulkCreate(codesList);
-    return codesList;
+    const activeSetting = await this.getActiveSettings(userId);
+
+    await this.dictionarySettingsRepo.destroy({where: {userId}})
+    const createdCodesList = await this.dictionarySettingsRepo.bulkCreate(codesList);
+
+    const langCodeObj = createdCodesList.find(code => code.sourceLanguage === activeSetting.sourceLanguage && code.targetLanguage === activeSetting.targetLanguage);
+    if (langCodeObj) {
+      await this.setActiveSetting({
+        sourceLanguage: langCodeObj.sourceLanguage, 
+        targetLanguage: langCodeObj.targetLanguage
+      }, userId);
+    } else {
+      await this.setDefaultSettings(userId);
+    }
+  
+    return createdCodesList;
   }
 
-  async setActiveSetting(id: number, userId: number) {
-    const setting = await this.dictionarySettingsRepo.findOne({ where: { id } });
+  async setActiveSetting(setActiveSettingDto: setActiveSettingDto, userId: number) {
+    const filter = { sourceLanguage: setActiveSettingDto.sourceLanguage, targetLanguage: setActiveSettingDto.targetLanguage };
+    const setting = await this.dictionarySettingsRepo.findOne({ 
+      where: filter 
+    });
+
     if (!setting) {
       throw new HttpException({
-        message: `Настройка не найдена по id${id}`,
+        message: `Настройка не найдена по кодам ${setting.sourceLanguage} - ${setting.targetLanguage}`,
         errorCode: 'settingNotFound',
         statusCode: HttpStatus.NOT_FOUND
       }, HttpStatus.NOT_FOUND);
@@ -109,6 +137,6 @@ export class DictionarySettingsService {
       await this.dictionarySettingsRepo.update({ isActive: false }, { where: { id: activeSetting.id } });
     }
     
-    return await this.dictionarySettingsRepo.update({ isActive: true }, { where: { id } });
+    return await this.dictionarySettingsRepo.update({ isActive: true }, { where: filter });
   }
 }

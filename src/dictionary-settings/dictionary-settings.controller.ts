@@ -29,6 +29,6 @@ export class DictionarySettingsController {
   @UseGuards(JwtAuthGuard)
   @Post('/set-active-setting')
   setActiveSetting(@Body() setActiveSettingDto: setActiveSettingDto, @Req() request) {
-    return this.dictionarySettingsService.setActiveSetting(+setActiveSettingDto.id, request.user.id);
+    return this.dictionarySettingsService.setActiveSetting(setActiveSettingDto, request.user.id);
   }
 }

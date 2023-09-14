@@ -1,3 +1,4 @@
 export class setActiveSettingDto {
-    id: string
+    sourceLanguage: string
+    targetLanguage: string
 }

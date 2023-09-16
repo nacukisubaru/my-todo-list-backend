@@ -71,21 +71,9 @@ export class LingvoApiService {
       };
   }
 
-  async translate(word: string, userId: number) {
+  async translate(word: string, sourceLang: string, targetLang: string, userId: number) {
     const dictionarySettings = await this.dictionarySettingsService.getActiveSettings(userId);
     const lang = await this.yandexService.getLanguage(word);
-    
-    let sourceLang = '';
-    let targetLang = '';
-    
-    if (lang === dictionarySettings.sourceLanguage) {
-      sourceLang = lang;
-      targetLang = dictionarySettings.targetLanguage;
-    } else {
-      sourceLang = dictionarySettings.targetLanguage;
-      targetLang = lang;
-    }
-
     try {
       const result: any = await this.shortTranslateWord(word, sourceLang, targetLang);
       if (result.originalWord.length !== word.length) {

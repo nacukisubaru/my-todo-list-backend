@@ -51,11 +51,12 @@ export class YandexCloudService {
         throw new HttpException('Перевод не найден', HttpStatus.NOT_FOUND);
     }
 
-    async getLanguage(text: string): Promise<string> {
+    async getLanguage(text: string, hints: string[] = []): Promise<string> {
         const client = await this.createSession();
         const response = await client.detectLanguage(DetectLanguageRequest.fromPartial({
             folderId: this.FOLDER_ID,
-            text
+            text,
+            languageCodeHints: hints
         }));
 
         if (!response.languageCode) {

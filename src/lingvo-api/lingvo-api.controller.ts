@@ -3,10 +3,15 @@ import { LingvoApiService } from './lingvo-api.service';
 import { CreateLingvoApiDto } from './dto/create-lingvo-api.dto';
 import { UpdateLingvoApiDto } from './dto/update-lingvo-api.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { translateMethod } from './types/lingvo-types';
+import { YandexCloudService } from 'src/yandex-cloud/yandex-cloud.service';
 
 @Controller('lingvo-api')
 export class LingvoApiController {
-  constructor(private readonly lingvoApiService: LingvoApiService) {}
+  constructor(
+    private readonly lingvoApiService: LingvoApiService,
+    private readonly yandexService: YandexCloudService
+  ) { }
 
   @Post()
   create(@Body() createLingvoApiDto: CreateLingvoApiDto) {
@@ -25,8 +30,18 @@ export class LingvoApiController {
 
   @UseGuards(JwtAuthGuard)
   @Get('/translate')
-  translate(@Query('word') word: string, @Req() request) {
-    return this.lingvoApiService.translate(word, request.user.id);
+  translate(
+    @Query('word') word: string,
+    @Query('sourceLang') sourceLang: string,
+    @Query('targetLang') targetLang: string,
+    @Query('translateMethod') translateMethod: translateMethod,
+    @Req() request
+  ) {
+    if (translateMethod === "lingvo") {
+      return this.lingvoApiService.translate(word, sourceLang, targetLang, request.user.id);
+    } else {
+      return this.yandexService.translate(word, sourceLang, targetLang);
+    }
   }
 
   @Get()

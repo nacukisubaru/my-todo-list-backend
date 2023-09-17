@@ -18,11 +18,6 @@ export class LingvoApiController {
     return this.lingvoApiService.create(createLingvoApiDto);
   }
 
-  @Get('/authorize')
-  authorize() {
-    return this.lingvoApiService.authorize();
-  }
-
   @Get('/short-translate')
   shortTranslateWord(@Query('word') word: string, @Query('sourceLang') sourceLang: string, @Query('targetLang') targetLang: string) {
     return this.lingvoApiService.shortTranslateWord(word, sourceLang, targetLang);
@@ -35,13 +30,21 @@ export class LingvoApiController {
     @Query('sourceLang') sourceLang: string,
     @Query('targetLang') targetLang: string,
     @Query('translateMethod') translateMethod: translateMethod,
-    @Req() request
   ) {
     if (translateMethod === "lingvo") {
-      return this.lingvoApiService.translate(word, sourceLang, targetLang, request.user.id);
+      return this.lingvoApiService.translate(word, sourceLang, targetLang);
     } else {
       return this.yandexService.translate(word, sourceLang, targetLang);
     }
+  }
+
+  @Get('/full-translate')
+  fullTranslate(
+    @Query('word') word: string,
+    @Query('sourceLang') sourceLang: string,
+    @Query('targetLang') targetLang: string,
+  ) {
+    return this.lingvoApiService.fullTranslateWord(word, sourceLang, targetLang);
   }
 
   @Get()

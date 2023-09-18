@@ -17,15 +17,27 @@ export class LingvoApiService {
     en: 1033,
     uk: 1058,
     ch: 1028,
-    da: 1030,
     de: 1031,
-    el: 1032,
     es: 1034,
     fr: 1036,
     it: 1040,
-    kk: 1087,
-    la: 1142, pl: 1045, tt: 1092
+    pl: 1045,
+    //el: 1032, 
+    // tt: 1092,
+    // kk: 1087,
+    // la: 1142,
   };
+  private grammarTypes = [
+    'глагол', 'предлог', 'наречие', 
+    'прилагательное', 'существительное', 
+    'множественное число', 'совершенный вид', 'союз',
+    'Герундий', 'Причастие', 'Инфинитив', 'Междометие',
+    'Подлежащее', 'Сказуемое', 'Дополнение', 'Обстоятельство',
+    'Приложение', 'Именительный падеж', 'Родительный падеж', 
+    'Дательный падеж', 'Винительный падеж', 'Творительный падеж',
+    'Предложный падеж'
+  ];
+  private langsWithoutGrammarTypes = ['fr', 'ch'];
 
   constructor(private readonly httpService: HttpService,
     private yandexService: YandexCloudService,
@@ -65,7 +77,7 @@ export class LingvoApiService {
     });
   }
 
-  private async parseTranslateResult(result: IResponseTranslte[], exclude: string[] = [], optionalOff: boolean = false) {
+  private async parseTranslateResult(result: IResponseTranslte[], exclude: string[] = [], optionalOff: boolean = false, useGrammarTypes: boolean = false) {
     let translateList = [];
     exclude = [...exclude, "CardRef"];
 
@@ -91,8 +103,15 @@ export class LingvoApiService {
       const isAccent = markups.find(markup => markup.IsAccent);
       //на испанском(других языках) не работает из-за !isAccent и каких-то других вещей
       //возможно писать отдельно парсер
-      //translateList.push(markups.map(markup => markup.Text).toString());
-      if (!isAccent) {
+      if (isAccent) {
+        const accentMarkups = [];
+        markups.map(markup => {
+          if (markup.IsAccent === true || markup.IsAccent === false) {
+            accentMarkups.push(markup.Text);
+          }
+        });
+        translateList.push(accentMarkups.join(''));
+      } else {
         markups.map((markup) => {
           let isContinue = false;
           if (markup.Node === "Abbrev" && markup.FullText && markup.FullText.includes("(")) {
@@ -100,6 +119,10 @@ export class LingvoApiService {
           }
 
           if (markup.Text === "несовер." || markup.Text === "совер.") {
+            isContinue = true;
+          }
+
+          if (markup.IsItalics) {
             isContinue = true;
           }
 
@@ -141,14 +164,21 @@ export class LingvoApiService {
     });
 
     translateList = this.sanitizeTranslateResult(translateList);
-    return this.buildTranslateList(translateList, ['глагол', 'предлог', 'наречие', 'прилагательное', 'существительное', 'множественное число', 'совершенный вид']);
+    return this.buildTranslateList(translateList, useGrammarTypes ? this.grammarTypes: []);
   }
 
   private sanitizeTranslateResult(translateList: string[]) {
     const translates = [];
+    translateList = translateList.map(translate => {
+      return translate.replaceAll("/^([.=*+-()#$№%!@-^&~<>:/\d/g])+@", "");
+    });
+   
     translateList.map((translate: string, inc: number) => {
       if (!translate.includes("(") && !translate.includes(")")) {
-        if (translateList[inc - 1] && !translateList[inc - 1].includes("(")) {
+        if (!translateList[inc - 1]) {
+          translates.push(translate);
+        } else if (translateList[inc - 1] && !translateList[inc - 1].includes("(")) {
+          //*+-()#$№%!@-=^&~<>:=
           translates.push(translate);
         }
       }
@@ -157,13 +187,13 @@ export class LingvoApiService {
     return translates;
   }
 
-  private buildTranslateList(translateList: string[], grammarTypes: string[]) {
+  private buildTranslateList(translateList: string[], grammarTypes: string[] = []) {
     let translateMap = [];
     let grammarTypeStr = "";
-    
+
     translateList.map((translate) => {
       const grammarExist = grammarTypes.some((grammarType) => {
-        if (translate.includes(grammarType)) {
+        if (translate.includes(grammarType) || translate.includes(grammarType.slice(0,4))) {
           grammarTypeStr = grammarType;
           return true;
         }
@@ -171,19 +201,32 @@ export class LingvoApiService {
       });
 
       if (!grammarExist) {
-        if (translate.match(/[;,]/g)) {
-          translate = translate.replaceAll(/[;]/g, ",");
+        if (translate.match(/[|;,]/g)) {
+          translate = translate.replaceAll(/[;|]/g, ",");
           const translateArray = translate.toString().split(",");
           translateArray.map((word: string) => {
-            translateMap.push({word: word.trimStart().trimEnd(), type: grammarTypeStr});
+            const translateObj: any = { word: word.trimStart().trimEnd() };
+            if (grammarTypes.length) {
+              translateObj.type = grammarTypeStr;
+            }
+            translateMap.push(translateObj);
           });
         } else {
-          translateMap.push({word: translate.trimStart().trimEnd(), type: grammarTypeStr});
+          const translateObj: any = { word: translate.trimStart().trimEnd() };
+          if (grammarTypes.length) {
+            translateObj.type = grammarTypeStr;
+          }
+          translateMap.push(translateObj);
         }
       }
     });
 
-    translateMap = translateMap.filter(translate => translate.type !== "" && translate.word !== "");
+    if (grammarTypes.length) {
+      translateMap = translateMap.filter(translate => translate.type !== "" && translate.word !== "");
+    } else {
+      translateMap = translateMap.filter(translate => translate.word !== "");
+    }
+
     return translateMap;
   }
 
@@ -205,7 +248,12 @@ export class LingvoApiService {
       `/api/v1/Translation?text=${word}&srcLang=${this.languageCodes[sourceLang]}&dstLang=${this.languageCodes[targetLang]}`
     );
 
-    return await this.parseTranslateResult(response.data, ["Example", "Comment", "Transcription"], true);
+    let useGrammarTypes = true;
+    if (this.langsWithoutGrammarTypes.includes(targetLang) || this.langsWithoutGrammarTypes.includes(sourceLang)) {
+      useGrammarTypes = false;
+    }
+  //  return response.data;
+    return await this.parseTranslateResult(response.data, ["Example", "Comment", "Transcription"], true, useGrammarTypes);
   }
 
   async translate(word: string, sourceLang: string, targetLang: string) {

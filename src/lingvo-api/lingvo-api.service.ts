@@ -26,17 +26,24 @@ export class LingvoApiService {
     // kk: 1087, казахский не дай бог
     // la: 1142, латинский врятли в обще понадобиться
   };
+
   private grammarTypes = [
     'глагол', 'предлог', 'наречие',
     'прилагательное', 'существительное',
     'множественное число', 'совершенный вид', 'союз',
-    'Герундий', 'Причастие', 'Инфинитив', 'Междометие',
-    'Подлежащее', 'Сказуемое', 'Дополнение', 'Обстоятельство',
-    'Приложение', 'Именительный падеж', 'Родительный падеж',
-    'Дательный падеж', 'Винительный падеж', 'Творительный падеж',
-    'Предложный падеж', 'средний род', 'единственное число', 'устаревшее слово',
-    'мужской род', 'женский род'
+    'герундий', 'причастие', 'инфинитив', 'междометие',
+    'подлежащее', 'сказуемое', 'дополнение', 'обстоятельство',
+    'приложение', 'именительный падеж', 'родительный падеж',
+    'дательный падеж', 'винительный падеж', 'творительный падеж',
+    'предложный падеж', 'средний род', 'единственное число', 'устаревшее слово',
+    'мужской род', 'женский род', 'местоимение', 'грамматический род', 'падеж', 'винительный падеж',
+    'артикль', 'детерминатив', 'словосочетание', '1-е лицо', '2-е лицо', '3-е лицо'
   ];
+
+  private excludeValuesList = [
+    "амер.", "брит.", "несовер.", "совер.", "© 2014 ABBYY. Все права защищены."
+  ];
+
   private langsWithoutGrammarTypes = ['fr', 'ch'];
 
   constructor(private readonly httpService: HttpService,
@@ -81,7 +88,7 @@ export class LingvoApiService {
     exclude: string[] = [],
     optionalOff: boolean = false,
     useGrammarTypes: boolean = false,
-    excludeLatinAlphabet: boolean = false
+    excludeAlphabet: string = ''
   ) {
     let translateList = [];
     exclude = [...exclude, "CardRef"];
@@ -106,8 +113,6 @@ export class LingvoApiService {
 
     const markupParse = (markups: IMarkup[]) => {
       const isAccent = markups.find(markup => markup.IsAccent);
-      //на испанском(других языках) не работает из-за !isAccent и каких-то других вещей
-      //возможно писать отдельно парсер
       if (isAccent) {
         const accentMarkups = [];
         markups.map(markup => {
@@ -119,11 +124,15 @@ export class LingvoApiService {
       } else {
         markups.map((markup) => {
           let isContinue = false;
-          // if (markup.Node === "Abbrev" && markup.FullText && markup.FullText.includes("(")) {
-          //   isContinue = true;
-          // }
 
-          if (markup.Text === "несовер." || markup.Text === "совер." || markup.Text === "амер.") {
+          if (markup.Node === "Abbrev") {
+            const isGrammarContains = this.grammarTypes.some(type => markup.FullText.includes(type));
+            if (!isGrammarContains) {
+              isContinue = true;
+            }
+          }
+
+          if (this.excludeValuesList.includes(markup.Text)) {
             isContinue = true;
           }
 
@@ -159,21 +168,22 @@ export class LingvoApiService {
         item.Body.map((itemBody, inc) => {
           //если не парсим только значения слов
           //убираем первый блок про транскрипцию и т.д
-          if (inc) {
-            if (itemBody.Markup) {
-              markupParse(itemBody.Markup);
-            }
-
-            if (itemBody.Items) {
-              itemParse(itemBody.Items);
-            }
+          //  if (inc) {
+          if (itemBody.Markup) {
+            markupParse(itemBody.Markup);
           }
+
+          if (itemBody.Items) {
+            itemParse(itemBody.Items);
+          }
+          // }
         })
       }
     });
 
+
     translateList = this.sanitizeTranslateResult(translateList);
-    return this.buildTranslateList(translateList, useGrammarTypes ? this.grammarTypes : [], excludeLatinAlphabet);
+    return this.buildTranslateList(translateList, useGrammarTypes ? this.grammarTypes : [], excludeAlphabet);
   }
 
   private sanitizeTranslateResult(translateList: string[]) {
@@ -181,7 +191,7 @@ export class LingvoApiService {
     let pattern = /[.=*\+\-\()#$№%!@-^&~<>:/\d/g]/g;
 
     translateList = translateList.map(translate => {
-      return translate.replaceAll(pattern, "");
+      return translate.replaceAll(pattern, " ");
     });
 
     translateList.map((translate: string, inc: number) => {
@@ -197,10 +207,11 @@ export class LingvoApiService {
     return translates;
   }
 
-  private buildTranslateList(translateList: string[], grammarTypes: string[] = [], excludeLatinAlphabet: boolean = false) {
+  private buildTranslateList(translateList: string[], grammarTypes: string[] = [], excludeAlphabet: string = '') {
     let translateMap = [];
-    let grammarTypeStr = "";
-    
+    let grammarTypeStr = "any";
+    const reg = new RegExp(`[${excludeAlphabet}\u0400-]`);
+
     translateList.map((translate) => {
       const grammarExist = grammarTypes.some((grammarType) => {
         if (translate.includes(grammarType) || translate.includes(grammarType.slice(0, 4))) {
@@ -220,7 +231,7 @@ export class LingvoApiService {
               translateObj.type = grammarTypeStr;
             }
 
-            if (!excludeLatinAlphabet || (excludeLatinAlphabet && /[a-z\u0400-]/gi.test(translate) === false)) {
+            if (!excludeAlphabet || (excludeAlphabet && reg.test(translate) === false)) {
               translateMap.push(translateObj);
             }
           });
@@ -234,14 +245,10 @@ export class LingvoApiService {
       }
     });
 
-    if (grammarTypes.length) {
-      translateMap = translateMap.filter(translate => translate.type !== "" && translate.word !== "");
-    } else {
-      translateMap = translateMap.filter(translate => translate.word !== "" );
-    }
+    translateMap = translateMap.filter(translate => translate.word !== "");
 
-    if (excludeLatinAlphabet) {
-      translateMap = translateMap.filter(translate => /[a-z\u0400-]/gi.test(translate.word) === false) 
+    if (excludeAlphabet) {
+      translateMap = translateMap.filter(translate => reg.test(translate.word) === false)
     }
 
     return arrayUniqueByKey(translateMap, 'word');
@@ -270,10 +277,16 @@ export class LingvoApiService {
       useGrammarTypes = false;
     }
 
-    let excludeLatinAlphabet = false;
+    let excludeAlphabet = '';
     if (sourceLang !== 'ru') {
-      excludeLatinAlphabet = true;
+      excludeAlphabet = 'a-z';
+      if (sourceLang === 'ch') {
+        excludeAlphabet = '一-俿';
+      }
+    } else {
+      excludeAlphabet = 'а-я'
     }
+
 
     // return response.data;
     return await this.parseTranslateResult(
@@ -281,7 +294,7 @@ export class LingvoApiService {
       ["Example", "Comment", "Transcription"],
       true,
       useGrammarTypes,
-      excludeLatinAlphabet
+      excludeAlphabet
     );
   }
 
@@ -308,25 +321,5 @@ export class LingvoApiService {
         throw new HttpException(error, HttpStatus.NOT_FOUND);
       }
     }
-  }
-
-  create(createLingvoApiDto: CreateLingvoApiDto) {
-    return 'This action adds a new lingvoApi';
-  }
-
-  findAll() {
-    return `This action returns all lingvoApi`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} lingvoApi`;
-  }
-
-  update(id: number, updateLingvoApiDto: UpdateLingvoApiDto) {
-    return `This action updates a #${id} lingvoApi`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} lingvoApi`;
   }
 }

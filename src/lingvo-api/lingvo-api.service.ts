@@ -37,7 +37,7 @@ export class LingvoApiService {
     'дательный падеж', 'винительный падеж', 'творительный падеж',
     'предложный падеж', 'средний род', 'единственное число', 'устаревшее слово',
     'мужской род', 'женский род', 'местоимение', 'грамматический род', 'падеж', 'винительный падеж',
-    'артикль', 'детерминатив', 'словосочетание', '1-е лицо', '2-е лицо', '3-е лицо'
+    'артикль', 'детерминатив', 'словосочетание', 'третье лицо', 'второе лицо', 'первое лицо'
   ];
 
   private excludeValuesList = [
@@ -188,7 +188,7 @@ export class LingvoApiService {
 
   private sanitizeTranslateResult(translateList: string[]) {
     let translates = [];
-    let pattern = /[.=*\+\-\()#$№%!@-^&~<>:/\d/g]/g;
+    let pattern = /[.=*\+\-\()#$№%!@-^&~<>:«»/\d/g]/g;
 
     translateList = translateList.map(translate => {
       return translate.replaceAll(pattern, " ");

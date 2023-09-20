@@ -1,5 +1,15 @@
 export type translateMethod = "lingvo" | "yandex";
 
+export interface IParseParams {
+    result: IResponseTranslte[],
+    exclude?: string[],
+    itemsForFind?: string[],
+    optionalOff?: boolean,
+    useGrammarTypes?: boolean,
+    excludeAlphabet?: string,
+    parseExample?: boolean
+}
+
 export interface IMarkup {
     IsItalics: boolean,
     IsAccent: boolean,
@@ -19,6 +29,7 @@ export interface ItemResponseTranslate {
 }
 
 export interface IBodyResponseTranslate {
+    Node: string,
     Markup: IMarkup[],
     Items: ItemResponseTranslate[]
 }

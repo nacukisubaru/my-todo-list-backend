@@ -40,4 +40,13 @@ export class LingvoApiController {
   ) {
     return this.lingvoApiService.fullTranslateWord(word, sourceLang, targetLang);
   }
+
+  @Get('/get-examples-for-word')
+  getExamplesForWord(
+    @Query('word') word: string,
+    @Query('sourceLang') sourceLang: string,
+    @Query('targetLang') targetLang: string,
+  ) {
+    return this.lingvoApiService.getExamplesForWord(word, sourceLang, targetLang);
+  }
 }

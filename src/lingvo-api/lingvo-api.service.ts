@@ -3,8 +3,8 @@ import { CreateLingvoApiDto } from './dto/create-lingvo-api.dto';
 import { UpdateLingvoApiDto } from './dto/update-lingvo-api.dto';
 import { HttpService } from '@nestjs/axios';
 import { YandexCloudService } from 'src/yandex-cloud/yandex-cloud.service';
-import { IMarkup, IResponse, IResponseTranslte, ItemResponseTranslate } from './types/lingvo-types';
-import { arrayUniqueByKey } from 'src/helpers/arrayHelper';
+import { IMarkup, IParseParams, IResponse, IResponseTranslte, ItemResponseTranslate } from './types/lingvo-types';
+import { arrayUniqueByKey, spliceIntoChunks } from 'src/helpers/arrayHelper';
 
 @Injectable()
 export class LingvoApiService {
@@ -83,22 +83,24 @@ export class LingvoApiService {
     });
   }
 
-  private async parseTranslateResult(
-    result: IResponseTranslte[],
-    exclude: string[] = [],
-    optionalOff: boolean = false,
-    useGrammarTypes: boolean = false,
-    excludeAlphabet: string = ''
-  ) {
+  private async parseTranslateResult({
+      result,
+      exclude = [],
+      optionalOff = false,
+      useGrammarTypes = false,
+      excludeAlphabet = '',
+      parseExample = false
+    }: IParseParams) {
+   
     let translateList = [];
     exclude = [...exclude, "CardRef"];
-
+    
     const markupCasesCall = (markup: IMarkup) => {
       if (!markup.FullText && markup.Text) {
         translateList.push(markup.Text);
       }
 
-      if (markup.FullText) {
+      if (markup.FullText && !parseExample) {
         translateList.push(markup.FullText);
       }
 
@@ -140,7 +142,11 @@ export class LingvoApiService {
             isContinue = true;
           }
 
-          if (!exclude.includes(markup.Node) && !isContinue) {
+          if (exclude.includes(markup.Node)) {
+            isContinue = true;
+          }
+
+          if (!isContinue) {
             if (optionalOff) {
               if (markup.IsOptional === false) {
                 markupCasesCall(markup);
@@ -165,23 +171,23 @@ export class LingvoApiService {
 
     result.map((item: IResponseTranslte) => {
       if (item.Body) {
-        item.Body.map((itemBody, inc) => {
-          //если не парсим только значения слов
-          //убираем первый блок про транскрипцию и т.д
-          //  if (inc) {
-          if (itemBody.Markup) {
+        item.Body.map((itemBody) => {
+          if (itemBody.Markup && !exclude.includes(itemBody.Node)) {
             markupParse(itemBody.Markup);
           }
 
           if (itemBody.Items) {
             itemParse(itemBody.Items);
           }
-          // }
         })
       }
     });
 
-
+    if (parseExample) {
+      translateList = this.sanitizeExamples(translateList);
+      return this.buildTranslateExamples(translateList);
+    }
+    
     translateList = this.sanitizeTranslateResult(translateList);
     return this.buildTranslateList(translateList, useGrammarTypes ? this.grammarTypes : [], excludeAlphabet);
   }
@@ -205,6 +211,32 @@ export class LingvoApiService {
     });
 
     return translates;
+  }
+
+  private sanitizeExamples(translateList: string[]) {
+    let translates = [];
+
+    translateList.map(translate => {
+      translate.split("—").map(word => {
+        if (word.length > 5) {
+          translates.push(word.trimStart().trimEnd());
+        }
+      });
+    });
+
+    return translates.filter(translate => translate !== "—");
+  }
+
+  private buildTranslateExamples(wordList: string[]) {
+    const examples = [];
+    const chunksList = spliceIntoChunks(wordList, 2);
+    chunksList.map((chunk) => {
+      const word = chunk[0];
+      const translate = chunk[1];
+      examples.push({word, translate});
+    });
+
+    return examples;
   }
 
   private buildTranslateList(translateList: string[], grammarTypes: string[] = [], excludeAlphabet: string = '') {
@@ -287,15 +319,31 @@ export class LingvoApiService {
       excludeAlphabet = 'а-я'
     }
 
-
-    // return response.data;
-    return await this.parseTranslateResult(
-      response.data,
-      ["Example", "Comment", "Transcription"],
-      true,
+    return await this.parseTranslateResult({
+      result: response.data,
+      exclude: ["Example", "Comment", "Transcription"],
+      itemsForFind: [],
+      optionalOff: true,
       useGrammarTypes,
       excludeAlphabet
+    });
+  }
+
+  async getExamplesForWord(word: string, sourceLang: string, targetLang: string) {
+    const response = await this.queryExecute(
+      `/api/v1/Translation?text=${word}&srcLang=${this.languageCodes[sourceLang]}&dstLang=${this.languageCodes[targetLang]}`
     );
+
+    const exclude = ["Transcription", "Paragraph", "Abbrev", "Sound", "Caption"];
+    if (sourceLang !== "ch" && targetLang !== "ch") {
+      exclude.push("Comment");
+    }
+
+    return await this.parseTranslateResult({
+      result: response.data,
+      exclude,
+      parseExample: true
+    });
   }
 
   async translate(word: string, sourceLang: string, targetLang: string) {

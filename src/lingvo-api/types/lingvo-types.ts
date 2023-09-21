@@ -7,7 +7,8 @@ export interface IParseParams {
     optionalOff?: boolean,
     useGrammarTypes?: boolean,
     excludeAlphabet?: string,
-    parseExample?: boolean
+    parseExample?: boolean,
+    isChinese?: boolean
 }
 
 export interface IMarkup {

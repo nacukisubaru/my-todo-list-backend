@@ -1,6 +1,4 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateLingvoApiDto } from './dto/create-lingvo-api.dto';
-import { UpdateLingvoApiDto } from './dto/update-lingvo-api.dto';
 import { HttpService } from '@nestjs/axios';
 import { YandexCloudService } from 'src/yandex-cloud/yandex-cloud.service';
 import { IMarkup, IParseParams, IResponse, IResponseTranslte, ItemResponseTranslate } from './types/lingvo-types';
@@ -89,13 +87,15 @@ export class LingvoApiService {
       optionalOff = false,
       useGrammarTypes = false,
       excludeAlphabet = '',
-      parseExample = false
+      parseExample = false,
+      isChinese = false
     }: IParseParams) {
    
     let translateList = [];
     exclude = [...exclude, "CardRef"];
     
     const markupCasesCall = (markup: IMarkup) => {
+
       if (!markup.FullText && markup.Text) {
         translateList.push(markup.Text);
       }
@@ -134,6 +134,10 @@ export class LingvoApiService {
             }
           }
 
+          if (parseExample && markups.length > 1 && markup.Node === "Example" && !isChinese) { 
+            isContinue = true;
+          }
+
           if (this.excludeValuesList.includes(markup.Text)) {
             isContinue = true;
           }
@@ -145,7 +149,7 @@ export class LingvoApiService {
           if (exclude.includes(markup.Node)) {
             isContinue = true;
           }
-
+          
           if (!isContinue) {
             if (optionalOff) {
               if (markup.IsOptional === false) {
@@ -182,10 +186,10 @@ export class LingvoApiService {
         })
       }
     });
-
+    
     if (parseExample) {
-      translateList = this.sanitizeExamples(translateList);
-      return this.buildTranslateExamples(translateList);
+      translateList = this.sanitizeExamples(translateList, isChinese);
+      return this.buildTranslateExamples(translateList, excludeAlphabet, isChinese);
     }
     
     translateList = this.sanitizeTranslateResult(translateList);
@@ -194,7 +198,7 @@ export class LingvoApiService {
 
   private sanitizeTranslateResult(translateList: string[]) {
     let translates = [];
-    let pattern = /[.=*\+\-\()#$№%!@-^&~<>:«»/\d/g]/g;
+    let pattern = /[.=*\+\-\()#$№%!@-^&~<>:«»0-9]/g;
 
     translateList = translateList.map(translate => {
       return translate.replaceAll(pattern, " ");
@@ -213,13 +217,29 @@ export class LingvoApiService {
     return translates;
   }
 
-  private sanitizeExamples(translateList: string[]) {
+  private sanitizeExamples(translateList: string[], isChinese: boolean = false) {
     let translates = [];
+    let pattern = /[|=*\+\()\[|\]#$№%@^&~<>:«»≈0-9]/g;
+    let patternSymbols = /[.,|;=*\+\-\()\[|\]#$№%!@-^&~<>:«»≈≈ 0-9]/g;
 
     translateList.map(translate => {
       translate.split("—").map(word => {
-        if (word.length > 5) {
-          translates.push(word.trimStart().trimEnd());
+        
+        let isContinue = false;
+        const isWord = word.replaceAll(patternSymbols, "");
+        
+        if (!isWord) {
+          isContinue = true;
+        }
+
+        word = word.trimStart().trimEnd().replaceAll(pattern, "");
+
+        if (!isChinese && word.length <= 6) {
+          isContinue = true
+        }
+
+        if (!isContinue && word) {
+          translates.push(word);
         }
       });
     });
@@ -227,13 +247,30 @@ export class LingvoApiService {
     return translates.filter(translate => translate !== "—");
   }
 
-  private buildTranslateExamples(wordList: string[]) {
+  private buildTranslateExamples(wordList: string[], excludeAlphabet: string = '', isChinese: boolean = false) {
     const examples = [];
-    const chunksList = spliceIntoChunks(wordList, 2);
+    const chunksList = spliceIntoChunks(
+      wordList, 
+      isChinese ? 3 : 2
+    );
+    const reg = new RegExp(`[${excludeAlphabet}\u0400]`);
     chunksList.map((chunk) => {
-      const word = chunk[0];
-      const translate = chunk[1];
-      examples.push({word, translate});
+      if (chunk.length > 1) {
+        const prepareExample:any = {};
+        
+        if (isChinese) {
+          prepareExample.word = chunk[0]
+          prepareExample.transcription = chunk[1];
+          prepareExample.translate = chunk[2];
+        } else {
+          prepareExample.word = chunk[0];
+          prepareExample.translate = chunk[1];
+        }
+
+        if (reg.test(prepareExample.translate) === false) {      
+          examples.push(prepareExample);
+        }
+      }
     });
 
     return examples;
@@ -242,7 +279,7 @@ export class LingvoApiService {
   private buildTranslateList(translateList: string[], grammarTypes: string[] = [], excludeAlphabet: string = '') {
     let translateMap = [];
     let grammarTypeStr = "any";
-    const reg = new RegExp(`[${excludeAlphabet}\u0400-]`);
+    const reg = new RegExp(`[${excludeAlphabet}\u0400]`);
 
     translateList.map((translate) => {
       const grammarExist = grammarTypes.some((grammarType) => {
@@ -334,15 +371,30 @@ export class LingvoApiService {
       `/api/v1/Translation?text=${word}&srcLang=${this.languageCodes[sourceLang]}&dstLang=${this.languageCodes[targetLang]}`
     );
 
+    let isChinese: boolean = false;
     const exclude = ["Transcription", "Paragraph", "Abbrev", "Sound", "Caption"];
     if (sourceLang !== "ch" && targetLang !== "ch") {
       exclude.push("Comment");
+    } else {
+      isChinese = true;
+    }
+
+    let excludeAlphabet = '';
+    if (sourceLang !== 'ru') {
+      excludeAlphabet = 'a-z';
+      if (sourceLang === 'ch') {
+        excludeAlphabet = '一-俿';
+      }
+    } else {
+      excludeAlphabet = 'а-я'
     }
 
     return await this.parseTranslateResult({
       result: response.data,
       exclude,
-      parseExample: true
+      parseExample: true,
+      isChinese,
+      excludeAlphabet
     });
   }
 

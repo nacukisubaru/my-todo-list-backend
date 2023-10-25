@@ -8,7 +8,7 @@ import { arrayUniqueByKey, spliceIntoChunks } from 'src/helpers/arrayHelper';
 export class LingvoApiService {
 
   private lingvoApiKey = process.env.lingvoKey;
-  private url = "https://developers.lingvolive.com";
+  private url = "https://api.lingvolive.com";
   private languageCodes = {
     ru: 1049,
     en: 1033,
@@ -68,14 +68,8 @@ export class LingvoApiService {
   }
 
   private async queryExecute(query: string): Promise<IResponse> {
-    const token = await this.authorize();
     return await this.httpService.axiosRef.get(
       this.url + query,
-      {
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      }
     ).catch(function (error) {
       throw new HttpException(error.response.data, HttpStatus.BAD_REQUEST);
     });
@@ -96,30 +90,30 @@ export class LingvoApiService {
     
     const markupCasesCall = (markup: IMarkup) => {
 
-      if (!markup.FullText && markup.Text) {
-        translateList.push(markup.Text);
+      if (!markup.fullText && markup.text) {
+        translateList.push(markup.text);
       }
 
-      if (markup.FullText && !parseExample) {
-        translateList.push(markup.FullText);
+      if (markup.fullText && !parseExample) {
+        translateList.push(markup.fullText);
       }
 
-      if (markup.Markup) {
-        markupParse(markup.Markup);
+      if (markup.markup) {
+        markupParse(markup.markup);
       }
 
-      if (markup.Items) {
-        itemParse(markup.Items);
+      if (markup.items) {
+        itemParse(markup.items);
       }
     }
 
     const markupParse = (markups: IMarkup[]) => {
-      const isAccent = markups.find(markup => markup.IsAccent);
+      const isAccent = markups.find(markup => markup.isAccent);
       if (isAccent) {
         const accentMarkups = [];
         markups.map(markup => {
-          if (markup.IsAccent === true || markup.IsAccent === false) {
-            accentMarkups.push(markup.Text);
+          if (markup.isAccent === true || markup.isAccent === false) {
+            accentMarkups.push(markup.text);
           }
         });
         translateList.push(accentMarkups.join(''));
@@ -127,32 +121,32 @@ export class LingvoApiService {
         markups.map((markup) => {
           let isContinue = false;
 
-          if (markup.Node === "Abbrev") {
-            const isGrammarContains = this.grammarTypes.some(type => markup.FullText.includes(type));
+          if (markup.node === "Abbrev") {
+            const isGrammarContains = this.grammarTypes.some(type => markup.fullText.includes(type));
             if (!isGrammarContains) {
               isContinue = true;
             }
           }
 
-          if (parseExample && markups.length > 1 && markup.Node === "Example" && !isChinese) { 
+          if (parseExample && markups.length > 1 && markup.node === "Example" && !isChinese) { 
             isContinue = true;
           }
 
-          if (this.excludeValuesList.includes(markup.Text)) {
+          if (this.excludeValuesList.includes(markup.text)) {
             isContinue = true;
           }
 
-          if (markup.IsItalics) {
+          if (markup.isItalics) {
             isContinue = true;
           }
 
-          if (exclude.includes(markup.Node)) {
+          if (exclude.includes(markup.node)) {
             isContinue = true;
           }
           
           if (!isContinue) {
             if (optionalOff) {
-              if (markup.IsOptional === false) {
+              if (markup.isOptional === false) {
                 markupCasesCall(markup);
               }
             } else {
@@ -163,25 +157,26 @@ export class LingvoApiService {
       }
     }
 
-    const itemParse = (items: ItemResponseTranslate[]) => {
+    const itemParse = (items: ItemResponseTranslate[]
+      ) => {
       items.map((item) => {
-        if (!exclude.includes(item.Node)) {
-          if (item.Markup) {
-            markupParse(item.Markup);
+        if (!exclude.includes(item.node)) {
+          if (item.markup) {
+            markupParse(item.markup);
           }
         }
       });
     }
 
-    result.map((item: IResponseTranslte) => {
-      if (item.Body) {
-        item.Body.map((itemBody) => {
-          if (itemBody.Markup && !exclude.includes(itemBody.Node)) {
-            markupParse(itemBody.Markup);
+    result["lingvoArticles"].map((item: IResponseTranslte) => {
+      if (item.body) {
+        item.body.map((itemBody) => {
+          if (itemBody.markup && !exclude.includes(itemBody.node)) {
+            markupParse(itemBody.markup);
           }
 
-          if (itemBody.Items) {
-            itemParse(itemBody.Items);
+          if (itemBody.items) {
+            itemParse(itemBody.items);
           }
         })
       }
@@ -313,19 +308,19 @@ export class LingvoApiService {
         }
       }
     });
-
     translateMap = translateMap.filter(translate => translate.word !== "");
 
     if (excludeAlphabet) {
       translateMap = translateMap.filter(translate => reg.test(translate.word) === false)
     }
 
-    return arrayUniqueByKey(translateMap, 'word');
+    return translateMap;
+    //return arrayUniqueByKey(translateMap, 'word');
   }
 
   async shortTranslateWord(word: string, sourceLang: string, targetLang: string) {
     const response = await this.queryExecute(
-      `/api/v1/Minicard?text=${word}&srcLang=${this.languageCodes[sourceLang]}&dstLang=${this.languageCodes[targetLang]}`
+      `/Translation/tutor-cards?text=${word}&srcLang=${this.languageCodes[sourceLang]}&dstLang=${this.languageCodes[targetLang]}`
     );
 
     return {
@@ -338,7 +333,7 @@ export class LingvoApiService {
 
   async fullTranslateWord(word: string, sourceLang: string, targetLang: string) {
     const response = await this.queryExecute(
-      `/api/v1/Translation?text=${word}&srcLang=${this.languageCodes[sourceLang]}&dstLang=${this.languageCodes[targetLang]}`
+      `/Translation/Translate?text=${word}&srcLang=${this.languageCodes[sourceLang]}&dstLang=${this.languageCodes[targetLang]}&returnJsonArticles=true`
     );
 
     let useGrammarTypes = true;
@@ -368,7 +363,7 @@ export class LingvoApiService {
 
   async getExamplesForWord(word: string, sourceLang: string, targetLang: string) {
     const response = await this.queryExecute(
-      `/api/v1/Translation?text=${word}&srcLang=${this.languageCodes[sourceLang]}&dstLang=${this.languageCodes[targetLang]}`
+      `/Translation/Translate?text=${word}&srcLang=${this.languageCodes[sourceLang]}&dstLang=${this.languageCodes[targetLang]}&returnJsonArticles=true`
     );
 
     let isChinese: boolean = false;

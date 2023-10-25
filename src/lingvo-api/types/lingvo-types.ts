@@ -12,30 +12,30 @@ export interface IParseParams {
 }
 
 export interface IMarkup {
-    IsItalics: boolean,
-    IsAccent: boolean,
-    Node: string,
-    Text: string,
-    IsOptional: boolean,
-    FullText: string,
-    Markup: IMarkup[],
-    Items: ItemResponseTranslate[]
+    isItalics: boolean,
+    isAccent: boolean,
+    node: string,
+    text: string,
+    isOptional: boolean,
+    fullText: string,
+    markup: IMarkup[],
+    items: ItemResponseTranslate[]
 }
 
 export interface ItemResponseTranslate {
-    Markup: IMarkup[],
-    Node: string,
-    Text: string,
-    IsOptional: boolean,
+    markup: IMarkup[],
+    node: string,
+    rext: string,
+    isOptional: boolean,
 }
 
 export interface IBodyResponseTranslate {
-    Node: string,
-    Markup: IMarkup[],
-    Items: ItemResponseTranslate[]
+    node: string,
+    markup: IMarkup[],
+    items: ItemResponseTranslate[]
 }
 export interface IResponseTranslte {
-    Body: IBodyResponseTranslate[]
+    body: IBodyResponseTranslate[]
 }
 
 export interface IResponse {

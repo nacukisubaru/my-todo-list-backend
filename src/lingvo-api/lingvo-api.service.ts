@@ -7,7 +7,6 @@ import { arrayUniqueByKey, spliceIntoChunks } from 'src/helpers/arrayHelper';
 @Injectable()
 export class LingvoApiService {
 
-  private lingvoApiKey = process.env.lingvoKey;
   private url = "https://api.lingvolive.com";
   private languageCodes = {
     ru: 1049,
@@ -47,25 +46,6 @@ export class LingvoApiService {
   constructor(private readonly httpService: HttpService,
     private yandexService: YandexCloudService,
   ) { }
-
-
-  private async authorize() {
-    const response: any = await this.httpService.axiosRef.post(
-      this.url + '/api/v1/authenticate',
-      {},
-      {
-        headers: {
-          "Authorization": 'Basic ' + this.lingvoApiKey,
-          "Content-Type": "application/json",
-          "Content-Length": 0
-        }
-      }
-    ).catch(function (error) {
-      throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
-    });
-
-    return response.data;
-  }
 
   private async queryExecute(query: string): Promise<IResponse> {
     return await this.httpService.axiosRef.get(
@@ -351,7 +331,7 @@ export class LingvoApiService {
       excludeAlphabet = 'а-я'
     }
 
-    return await this.parseTranslateResult({
+    const result = await this.parseTranslateResult({
       result: response.data,
       exclude: ["Example", "Comment", "Transcription"],
       itemsForFind: [],
@@ -359,6 +339,8 @@ export class LingvoApiService {
       useGrammarTypes,
       excludeAlphabet
     });
+
+    return result.reverse();
   }
 
   async getExamplesForWord(word: string, sourceLang: string, targetLang: string) {

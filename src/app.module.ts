@@ -26,6 +26,7 @@ import { DictionaryExamplesModule } from './dictionary-examples/dictionary-examp
 import { DictionaryExample } from './dictionary-examples/entities/dictionary-example.entity';
 import { DictionariesExamples } from './dictionary-examples/entities/dictionaries-examples.entity';
 import { LingvoApiModule } from './lingvo-api/lingvo-api.module';
+import { DictionaryLinkedWordsModule } from './dictionary-linked-words/dictionary-linked-words.module';
 
 @Module({
   imports: [
@@ -80,6 +81,7 @@ import { LingvoApiModule } from './lingvo-api/lingvo-api.module';
     DictionarySettingsModule,
     DictionaryExamplesModule,
     LingvoApiModule,
+    DictionaryLinkedWordsModule,
   ],
   controllers: [],
   providers: [],

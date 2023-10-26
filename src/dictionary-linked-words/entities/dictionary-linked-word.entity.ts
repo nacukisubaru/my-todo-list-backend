@@ -1,5 +1,6 @@
-import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import { BelongsToMany, Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
 import { Dictionary } from "src/dictionary/entities/dictionary.entity";
+import { DictionariesLinkedWords } from "./dictionary-linked-words.entity";
 
 @Table({tableName: 'dictionary-linked-words'})
 export class DictionaryLinkedWord extends Model<DictionaryLinkedWord> {
@@ -8,8 +9,4 @@ export class DictionaryLinkedWord extends Model<DictionaryLinkedWord> {
 
     @Column({ type: DataType.STRING })
     word: string;
-
-    @ForeignKey(() => Dictionary)
-    @Column({ type: DataType.STRING, allowNull: false })
-    dictionaryId: string;
 }

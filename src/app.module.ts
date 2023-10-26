@@ -27,6 +27,8 @@ import { DictionaryExample } from './dictionary-examples/entities/dictionary-exa
 import { DictionariesExamples } from './dictionary-examples/entities/dictionaries-examples.entity';
 import { LingvoApiModule } from './lingvo-api/lingvo-api.module';
 import { DictionaryLinkedWordsModule } from './dictionary-linked-words/dictionary-linked-words.module';
+import { DictionariesLinkedWords } from './dictionary-linked-words/entities/dictionary-linked-words.entity';
+import { DictionaryLinkedWord } from './dictionary-linked-words/entities/dictionary-linked-word.entity';
 
 @Module({
   imports: [
@@ -54,7 +56,9 @@ import { DictionaryLinkedWordsModule } from './dictionary-linked-words/dictionar
         DictionarySettings,
         Dictionary,
         DictionaryExample,
-        DictionariesExamples
+        DictionariesExamples,
+        DictionaryLinkedWord,
+        DictionariesLinkedWords
       ],
       autoLoadModels: true
     }),
@@ -82,6 +86,7 @@ import { DictionaryLinkedWordsModule } from './dictionary-linked-words/dictionar
     DictionaryExamplesModule,
     LingvoApiModule,
     DictionaryLinkedWordsModule,
+    DictionariesLinkedWords
   ],
   controllers: [],
   providers: [],

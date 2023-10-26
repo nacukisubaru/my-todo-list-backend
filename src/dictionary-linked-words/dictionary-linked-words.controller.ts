@@ -1,7 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Query } from '@nestjs/common';
 import { DictionaryLinkedWordsService } from './dictionary-linked-words.service';
 import { CreateDictionaryLinkedWordDto } from './dto/create-dictionary-linked-word.dto';
-import { UpdateDictionaryLinkedWordDto } from './dto/update-dictionary-linked-word.dto';
 
 @Controller('dictionary-linked-words')
 export class DictionaryLinkedWordsController {
@@ -9,11 +8,11 @@ export class DictionaryLinkedWordsController {
 
   @Post('/create')
   create(@Body() createDictionaryLinkedWordDto: CreateDictionaryLinkedWordDto) {
-    const {dictionaryId, words, wordsToRemove} = createDictionaryLinkedWordDto
-    return this.dictionaryLinkedWordsService.create(words, wordsToRemove, dictionaryId);
+    const {dictionaryId, words} = createDictionaryLinkedWordDto
+    return this.dictionaryLinkedWordsService.create(words, dictionaryId);
   }
 
-  @Get()
+  @Get('/getList')
   getListByDictionaryWord(@Query('dictionaryId') dictionaryId: string ) {
     return this.dictionaryLinkedWordsService.getListByDictionaryId(dictionaryId);
   }

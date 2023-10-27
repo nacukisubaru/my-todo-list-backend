@@ -46,7 +46,8 @@ export class LingvoApiController {
     @Query('word') word: string,
     @Query('sourceLang') sourceLang: string,
     @Query('targetLang') targetLang: string,
+    @Query('pageSize') pageSize: string,
   ) {
-    return this.lingvoApiService.getExamplesForWord(word, sourceLang, targetLang);
+    return this.lingvoApiService.getExamplesForWord(word, sourceLang, targetLang, +pageSize);
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { DictionaryLinkedWordsService } from './dictionary-linked-words.service';
 import { CreateDictionaryLinkedWordDto } from './dto/create-dictionary-linked-word.dto';
 
@@ -12,13 +12,4 @@ export class DictionaryLinkedWordsController {
     return this.dictionaryLinkedWordsService.create(words, dictionaryId);
   }
 
-  @Get('/getList')
-  getListByDictionaryWord(@Query('dictionaryId') dictionaryId: string ) {
-    return this.dictionaryLinkedWordsService.getListByDictionaryId(dictionaryId);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.dictionaryLinkedWordsService.remove(+id);
-  }
 }

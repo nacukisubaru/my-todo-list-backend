@@ -1,10 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { CreateDictionaryLinkedWordDto } from './dto/create-dictionary-linked-word.dto';
-import { UpdateDictionaryLinkedWordDto } from './dto/update-dictionary-linked-word.dto';
 import { DictionaryLinkedWord } from './entities/dictionary-linked-word.entity';
 import { InjectModel } from '@nestjs/sequelize';
 import { DictionariesLinkedWords } from './entities/dictionary-linked-words.entity';
-import { where } from 'sequelize';
 
 @Injectable()
 export class DictionaryLinkedWordsService {
@@ -15,7 +12,6 @@ export class DictionaryLinkedWordsService {
   ) {}
 
   async create(words: string[], dictionaryId: string) {   
-
     const wordsObj = words.map(word => {
       return {word};
     })
@@ -34,11 +30,4 @@ export class DictionaryLinkedWordsService {
     await this.dictionariesLinkedWordsRepo.bulkCreate(dataForCreate);
   }
 
-  async getListByDictionaryId(dictionaryId: string) {
-   // return await this.dictionaryLinkedWordRepo.findAll({where: {dictionaryId}});
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} dictionaryLinkedWord`;
-  }
 }

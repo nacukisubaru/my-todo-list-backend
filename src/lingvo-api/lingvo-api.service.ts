@@ -292,8 +292,8 @@ export class LingvoApiService {
       translateMap = translateMap.filter(translate => reg.test(translate.word) === false)
     }
 
-    return translateMap;
-    //return arrayUniqueByKey(translateMap, 'word');
+    //return translateMap;
+    return arrayUniqueByKey(translateMap, 'word');
   }
 
   async shortTranslateWord(word: string, sourceLang: string, targetLang: string) {

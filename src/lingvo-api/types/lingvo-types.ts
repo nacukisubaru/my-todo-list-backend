@@ -8,7 +8,8 @@ export interface IParseParams {
     useGrammarTypes?: boolean,
     excludeAlphabet?: string,
     parseExample?: boolean,
-    isChinese?: boolean
+    isChinese?: boolean,
+    getTranscription?: boolean
 }
 
 export interface IMarkup {

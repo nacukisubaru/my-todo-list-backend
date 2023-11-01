@@ -4,4 +4,5 @@ export class CreateDictionaryDto {
     translatedWord: string;
     languageOriginal: string;
     languageTranslation: string;
+    transcription: string;
 }

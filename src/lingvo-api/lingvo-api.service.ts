@@ -15,7 +15,7 @@ export class LingvoApiService {
     de: 1031,
     es: 1034,
     it: 1040,
-    //fr: 1036, нет общего словаря только юридический, 
+    fr: 1036, 
     //химический и прочая чепуха
     //uk: 1058, хохляцкий пока не нужен
     //el: 1032, греческий пока не нужен
@@ -62,16 +62,22 @@ export class LingvoApiService {
     useGrammarTypes = false,
     excludeAlphabet = '',
     parseExample = false,
-    isChinese = false
+    isChinese = false,
+    getTranscription = false
   }: IParseParams) {
 
     let translateList = [];
     exclude = [...exclude, "CardRef"];
+    let transcription = "";
 
     const markupCasesCall = (markup: IMarkup) => {
 
       if (!markup.fullText && markup.text) {
         translateList.push(markup.text);
+      }
+
+      if (markup.node === "Transcription") {
+        transcription = markup.text;
       }
 
       if (markup.fullText && !parseExample) {
@@ -147,7 +153,7 @@ export class LingvoApiService {
         }
       });
     }
-
+   // return result["lingvoArticles"];
     result["lingvoArticles"].map((item: IResponseTranslte) => {
       if (item.body) {
         item.body.map((itemBody) => {
@@ -168,7 +174,13 @@ export class LingvoApiService {
     }
 
     translateList = this.sanitizeTranslateResult(translateList);
-    return this.buildTranslateList(translateList, useGrammarTypes ? this.grammarTypes : [], excludeAlphabet);
+    const translates = this.buildTranslateList(translateList, useGrammarTypes ? this.grammarTypes : [], excludeAlphabet);
+    
+    if (getTranscription) {
+      translates.push({word: transcription, type: 'transcription'})
+    }
+
+    return translates;
   }
 
   private sanitizeTranslateResult(translateList: string[]) {
@@ -297,23 +309,25 @@ export class LingvoApiService {
   }
 
   async shortTranslateWord(word: string, sourceLang: string, targetLang: string) {
-    const response = await this.queryExecute(
-      `/Translation/tutor-cards?text=${word}&srcLang=${this.languageCodes[sourceLang]}&dstLang=${this.languageCodes[targetLang]}`
-    );
+    let wordsList = await this.fullTranslateWord(word, sourceLang, targetLang, true);
+    const transcription = wordsList.find(word => word.type === 'transcription');
+    wordsList = wordsList.filter(word => word.type !== 'transcription');
 
     return {
-      originalWord: response.data.Heading,
-      translatedWord: response.data.Translation.Translation,
+      originalWord: word,
+      translatedWord: wordsList[0].word,
       originalLang: sourceLang,
-      translateLang: targetLang
+      translateLang: targetLang,
+      transcription: transcription ? transcription.word : "",
+      wordsList: wordsList
     };
   }
 
-  async fullTranslateWord(word: string, sourceLang: string, targetLang: string) {
+  async fullTranslateWord(word: string, sourceLang: string, targetLang: string, getTranscription: boolean = false) {
     const response = await this.queryExecute(
       `/Translation/Translate?text=${word}&srcLang=${this.languageCodes[sourceLang]}&dstLang=${this.languageCodes[targetLang]}&returnJsonArticles=true`
     );
-
+    
     let useGrammarTypes = true;
     if (this.langsWithoutGrammarTypes.includes(targetLang) || this.langsWithoutGrammarTypes.includes(sourceLang)) {
       useGrammarTypes = false;
@@ -331,11 +345,12 @@ export class LingvoApiService {
 
     const result = await this.parseTranslateResult({
       result: response.data,
-      exclude: ["Example", "Comment", "Transcription"],
+      exclude: ["Example", "Comment"],
       itemsForFind: [],
       optionalOff: true,
       useGrammarTypes,
-      excludeAlphabet
+      excludeAlphabet,
+      getTranscription
     });
 
     return result.reverse();
@@ -387,7 +402,7 @@ export class LingvoApiService {
 
   async translate(word: string, sourceLang: string, targetLang: string) {
     try {
-      const result: any = await this.shortTranslateWord(word, sourceLang, targetLang);
+      const result: any = await this.shortTranslateWord(word, sourceLang, targetLang)
       if (result.originalWord.length !== word.length) {
         throw new HttpException('Слово не найдено', HttpStatus.NOT_FOUND);
       }

@@ -22,6 +22,9 @@ export class Dictionary extends Model<Dictionary>{
     @Column({ type: DataType.STRING, allowNull: false })
     languageTranslation: string;
 
+    // @Column({ type: DataType.STRING, allowNull: false })
+    // transcription: string;
+
     @Column({ type: DataType.STRING, allowNull: false})
     studyStage: string;
 

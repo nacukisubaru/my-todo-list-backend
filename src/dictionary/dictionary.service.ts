@@ -86,6 +86,10 @@ export class DictionaryService {
     return await this.dictionaryRepo.update({ studyStage }, { where: { id } })
   }
 
+  async updateNotes(id: string, notes: string) {
+    return await this.dictionaryRepo.update({notes}, {where: {id}});
+  }
+
   findOne(id: number) {
     return `This action returns a #${id} dictionary`;
   }

@@ -48,6 +48,11 @@ export class DictionaryController {
     return this.dictionaryService.updateStudyStage(updateDictionaryDto.id, updateDictionaryDto.studyStage);
   }
 
+  @Post('/update-notes')
+  updateNotes(@Body() updateDictionaryDto: UpdateDictionaryDto) {
+    return this.dictionaryService.updateNotes(updateDictionaryDto.id, updateDictionaryDto.notes);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.dictionaryService.remove(+id);

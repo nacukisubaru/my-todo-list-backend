@@ -4,4 +4,5 @@ import { studyStageType } from '../dictionary.service';
 
 export class UpdateDictionaryDto extends PartialType(CreateDictionaryDto) {
     studyStage: studyStageType;
+    notes: string
 }

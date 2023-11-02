@@ -10,7 +10,7 @@ export class YandexCloudController {
   @UseGuards(JwtAuthGuard)
   @Get('/translate')
   translate(@Query('word') word: string, @Query('targetLang') targetLang: string, @Req() request) {
-    return this.yandexCloudService.translate(word, targetLang, request.user.id);
+    return this.yandexCloudService.translate(word, targetLang);
   }
 
 

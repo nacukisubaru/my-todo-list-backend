@@ -1,4 +1,4 @@
-export class CreateDictionarySettingDto {
+export class setActiveSettingDto {
     sourceLanguage: string
     targetLanguage: string
 }

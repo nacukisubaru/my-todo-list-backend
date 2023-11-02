@@ -1,9 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Session, cloudApi, serviceClients } from '@yandex-cloud/nodejs-sdk';
-import { DictionarySettingsService } from 'src/dictionary-settings/dictionary-settings.service';
 import { LangCodesISO } from 'src/helpers/languageHelper';
 
-const { ai: { translate_translation_service: { TranslateRequest, TranslateRequest_Format: Format, ListLanguagesRequest } } } = cloudApi;
+const { ai: { translate_translation_service: { TranslateRequest, TranslateRequest_Format: Format, ListLanguagesRequest, DetectLanguageRequest } } } = cloudApi;
 
 @Injectable()
 export class YandexCloudService {
@@ -12,10 +11,8 @@ export class YandexCloudService {
     private FOLDER_ID = process.env.yandexFolderId;
     private client = null;
 
-    constructor(private dictionarySettingsService: DictionarySettingsService) {
-    }
 
-    async translate(word: string, targetLanguageCode: string, userId: number) {
+    async translate(word: string, targetLanguageCode: string, sourceLanguageCode: string = '') {
         const TEXTS = [word];
 
         const client = await this.createSession();
@@ -26,20 +23,47 @@ export class YandexCloudService {
         if(!langCodes.includes(targetLanguageCode)) {
             throw new HttpException('Выбраный язык не поддерживается', HttpStatus.BAD_REQUEST);
         }
-        await this.dictionarySettingsService.setDefaultLanguage(userId, targetLanguageCode);
-        
-        const response = await client.translate(TranslateRequest.fromPartial({
+
+        const prepareToTranslate: any = {
             targetLanguageCode,
             format: Format.PLAIN_TEXT,
             folderId: this.FOLDER_ID,
             texts: TEXTS,
-        }));
+        };
 
-        for (const [idx, translateRes] of response.translations.entries()) {
-            return { originalWord: word, translatedWord: translateRes.text, textLang: translateRes.detectedLanguageCode };
+        if (sourceLanguageCode) {
+            prepareToTranslate.sourceLanguageCode = sourceLanguageCode;
         }
 
-        return false;
+        const response = await client.translate(TranslateRequest.fromPartial(prepareToTranslate));
+
+        for (const [idx, translateRes] of response.translations.entries()) {
+            let originalLang = '';
+            if (sourceLanguageCode) {
+                originalLang = sourceLanguageCode;
+            } else {
+                originalLang = translateRes.detectedLanguageCode
+            }
+
+            return { originalWord: word, translatedWord: translateRes.text, originalLang, translateLang: targetLanguageCode };
+        }
+
+        throw new HttpException('Перевод не найден', HttpStatus.NOT_FOUND);
+    }
+
+    async getLanguage(text: string, hints: string[] = []): Promise<string> {
+        const client = await this.createSession();
+        const response = await client.detectLanguage(DetectLanguageRequest.fromPartial({
+            folderId: this.FOLDER_ID,
+            text,
+            languageCodeHints: hints
+        }));
+
+        if (!response.languageCode) {
+            throw new HttpException('Язык не найден', HttpStatus.NOT_FOUND);
+        }
+
+        return response.languageCode;
     }
 
     async getLanguagesList() {
@@ -60,7 +84,7 @@ export class YandexCloudService {
         const languages = [];
         response.languages.map((language) => {
             if (language.name !== "") {
-            const lang = {...language, isoName: LangCodesISO[language.code]}
+                const lang = {...language, isoName: LangCodesISO[language.code]}
                 languages.push(lang);
             }
         })

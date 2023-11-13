@@ -29,6 +29,7 @@ import { LingvoApiModule } from './lingvo-api/lingvo-api.module';
 import { DictionaryLinkedWordsModule } from './dictionary-linked-words/dictionary-linked-words.module';
 import { DictionariesLinkedWords } from './dictionary-linked-words/entities/dictionary-linked-words.entity';
 import { DictionaryLinkedWord } from './dictionary-linked-words/entities/dictionary-linked-word.entity';
+import { BookReaderModule } from './book-reader/book-reader.module';
 
 @Module({
   imports: [
@@ -86,7 +87,8 @@ import { DictionaryLinkedWord } from './dictionary-linked-words/entities/diction
     DictionaryExamplesModule,
     LingvoApiModule,
     DictionaryLinkedWordsModule,
-    DictionariesLinkedWords
+    DictionariesLinkedWords,
+    BookReaderModule
   ],
   controllers: [],
   providers: [],

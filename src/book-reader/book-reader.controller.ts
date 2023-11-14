@@ -34,12 +34,8 @@ export class BookReaderController {
   }
 
   @Get('/get-book')
-  getBook(@Query('id') id: string, @Query('limitOnPage') limitOnPage: string) {
-    if (limitOnPage) {
-      return this.bookReaderService.getBook(+id, +limitOnPage);   
-    }
-
-    return this.bookReaderService.getBook(+id);
+  getBook(@Query('id') id: string, @Query('page') page: string = '1', @Query('limitOnPage') limitOnPage: string = '500') {
+    return this.bookReaderService.getBook(+id, +page, +limitOnPage);   
   }
 
   @Get('/get-video')

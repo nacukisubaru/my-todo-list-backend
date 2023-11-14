@@ -99,31 +99,24 @@ export class BookReaderService {
     return file.data;
   }
 
-  async getBook(id: number, limitOnPage: number = 500) {
+  async getBook(id: number, page: number = 1, limitOnPage: number = 500) {
     let content: string = await this.getContentFromFile(id);
     const arrayText = this.splitTextBySpanWords(content);
     
-    let page = 1;
     let arr = [];
-    let list = [];
-    let start = 0;
-    let end = limitOnPage;
-    do {
-      arr = arrayText.slice(start, end);
-      list.push({text: arr.join(), page});
-      start += limitOnPage;
-      end += limitOnPage;
-      page += 1;
-    } while (arr.length);
+    const startPage = limitOnPage * page;
+    let start = startPage === limitOnPage ? 0 : startPage - limitOnPage;
+    let end = startPage;
 
-    return list;
+    arr = arrayText.slice(start, end);
+    return {text: arr.join(" "), page};
   }
 
   private splitTextBySpanWords (text: string) {
     const contentArray = []; 
     const wordsList = text.split(" ");
     for (let inc = 0; inc < wordsList.length; inc++) {
-      let pattern = /[.=*\+\-\(),#$№%!@-]/g;
+      let pattern = /[.=*\+\-\(),“”#$№%!@-]/g;
       let wordWithoutSymvols = wordsList[inc].replaceAll(pattern, "");
       if (wordWithoutSymvols.includes('\n')) {
         const wordsFromString = wordWithoutSymvols.split("\n");

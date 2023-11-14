@@ -157,16 +157,18 @@ export class BookReaderService {
     const subtitles = [];
     do {
       chunks = contentChunks.slice(start, end);
-      let text = '';
-      let timecodes = [];
-      chunks.map(chunk => {
-        text += this.splitTextBySpanWords(chunk[2]).join()+'<br/>';
-        timecodes.push(chunk[1].split("-->")[0]);
-      })
-      subtitles.push({text, timecodes, page});
-      start += limitOnPage;
-      end += limitOnPage;
-      page++;
+      if (chunks.length) {
+        let text = '';
+        let timecodes = [];
+        chunks.map(chunk => {
+          text += this.splitTextBySpanWords(chunk[2]).join()+'<br/>';
+          timecodes.push(chunk[1].split("-->")[0].split(',')[0]);
+        })
+        subtitles.push({text, timecodes, page});
+        start += limitOnPage;
+        end += limitOnPage;
+        page++;
+      }
     }
     while (chunks.length);
 

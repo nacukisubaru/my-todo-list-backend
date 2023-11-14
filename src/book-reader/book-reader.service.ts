@@ -7,6 +7,7 @@ import * as path from 'path';
 import { defaultLimitPage, paginate } from 'src/helpers/paginationHelper';
 import { Op } from 'sequelize';
 import { HttpService } from '@nestjs/axios';
+import { spliceIntoChunks } from 'src/helpers/arrayHelper';
 
 interface IFile {
   fieldname: string,
@@ -38,6 +39,9 @@ export class BookReaderService {
       throw new HttpException('книга или видео уже существует', HttpStatus.BAD_REQUEST);
     }
     const originalName = path.parse(file.originalname);
+    if (createBookReaderDto.isVideo && originalName.ext !== 'srt') {
+      throw new HttpException('не возможно добавить видео без файла субтитров типа srt', HttpStatus.BAD_REQUEST);
+    }
     const uploadedFile = this.filesService.createFile(file, 'books', originalName.ext, userId);
     return await this.bookReaderRepo.create({...createBookReaderDto, file: uploadedFile.filePathServer, userId})
   }
@@ -79,7 +83,11 @@ export class BookReaderService {
   async getContentFromFile(id: number, isVideo: boolean = false) {
     const book = await this.bookReaderRepo.findOne({where: {id, isVideo}});
     if (!book) {
-      throw new HttpException('книга не найдена', HttpStatus.NOT_FOUND);
+      throw new HttpException(`${isVideo ? 'видео' : 'книга'} не найдена`, HttpStatus.NOT_FOUND);
+    }
+
+    if (!book.file) {
+      throw new HttpException('файл не найден', HttpStatus.NOT_FOUND);
     }
 
     const file = await this.httpService.axiosRef.get(
@@ -137,8 +145,32 @@ export class BookReaderService {
   }
 
 
-  async getVideo(id: number) {
+  async getVideo(id: number, limitOnPage: number = 20) {
     let content: string = await this.getContentFromFile(id, true); 
+    const arrContent = content.split("\n").filter(item => item !== "");
+    const contentChunks = spliceIntoChunks(arrContent, 3);
+    
+    let page = 1;
+    let start = 0;
+    let end = limitOnPage;
+    let chunks = [];
+    const subtitles = [];
+    do {
+      chunks = contentChunks.slice(start, end);
+      let text = '';
+      let timecodes = [];
+      chunks.map(chunk => {
+        text += this.splitTextBySpanWords(chunk[2]).join()+'<br/>';
+        timecodes.push(chunk[1].split("-->")[0]);
+      })
+      subtitles.push({text, timecodes, page});
+      start += limitOnPage;
+      end += limitOnPage;
+      page++;
+    }
+    while (chunks.length);
+
+    return subtitles;
   }
 
   async updateBookmarker(id: number, bookmarker: number) {

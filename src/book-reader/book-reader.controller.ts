@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UseGuards, UploadedFile, Query, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseInterceptors, UseGuards, UploadedFile, Query, Req } from '@nestjs/common';
 import { BookReaderService, IFilter } from './book-reader.service';
 import { CreateBookReaderDto } from './dto/create-book-reader.dto';
 import { UpdateBookReaderDto } from './dto/update-book-reader.dto';
@@ -44,6 +44,9 @@ export class BookReaderController {
 
   @Get('/get-video')
   getVideo(@Query('id') id: string, @Query('limitOnPage') limitOnPage: string) {
+    if (limitOnPage) {
+      return this.bookReaderService.getVideo(+id, +limitOnPage);
+    }
     return this.bookReaderService.getVideo(+id);
   }
 

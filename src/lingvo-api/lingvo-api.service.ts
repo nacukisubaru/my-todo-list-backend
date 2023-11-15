@@ -56,7 +56,7 @@ export class LingvoApiService {
   }
 
   private async parseTranslateResult({
-    result,
+    result = [],
     exclude = [],
     optionalOff = false,
     useGrammarTypes = false,
@@ -153,20 +153,22 @@ export class LingvoApiService {
         }
       });
     }
-   // return result["lingvoArticles"];
-    result["lingvoArticles"].map((item: IResponseTranslte) => {
-      if (item.body) {
-        item.body.map((itemBody) => {
-          if (itemBody.markup && !exclude.includes(itemBody.node)) {
-            markupParse(itemBody.markup);
-          }
 
-          if (itemBody.items) {
-            itemParse(itemBody.items);
-          }
-        })
-      }
-    });
+    if (result["lingvoArticles"]) {
+      result["lingvoArticles"].map((item: IResponseTranslte) => {
+        if (item.body) {
+          item.body.map((itemBody) => {
+            if (itemBody.markup && !exclude.includes(itemBody.node)) {
+              markupParse(itemBody.markup);
+            }
+
+            if (itemBody.items) {
+              itemParse(itemBody.items);
+            }
+          })
+        }
+      });
+    }
 
     if (parseExample) {
       translateList = this.sanitizeExamples(translateList, isChinese);

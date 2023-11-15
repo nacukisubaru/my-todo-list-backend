@@ -102,7 +102,7 @@ export class BookReaderService {
   async getBook(id: number, page: number = 1, limitOnPage: number = 500) {
     let content: string = await this.getContentFromFile(id);
     const arrayText = this.splitTextBySpanWords(content);
-    
+
     let arr = [];
     const startPage = limitOnPage * page;
     let start = startPage === limitOnPage ? 0 : startPage - limitOnPage;
@@ -115,20 +115,23 @@ export class BookReaderService {
   private splitTextBySpanWords (text: string) {
     const contentArray = []; 
     const wordsList = text.split(" ");
+    
     for (let inc = 0; inc < wordsList.length; inc++) {
-      let pattern = /[.=*\+\-\(),“”#$№%!@-]/g;
-      let wordWithoutSymvols = wordsList[inc].replaceAll(pattern, "");
-      if (wordWithoutSymvols.includes('\n')) {
-        const wordsFromString = wordWithoutSymvols.split("\n");
+     
+      if (wordsList[inc].includes('\n')) {
+        const wordsFromString = wordsList[inc].split("\n");
         wordsFromString.map((word, key) => {
           if (!word) {
             contentArray.push('<br/>');
           } else {
+            let pattern = /[.=*\+\(),“”""#$№%!&*;'|:~<>?@]/g;
             const withoutSymvols = word.replaceAll(pattern, "");
             contentArray.push(wordsFromString[key].replace(withoutSymvols, `<span id="${withoutSymvols+key+inc}" class="translateMyWord">` + withoutSymvols + '</span>'));
           }
         })
       } else {
+        let pattern = /[.=*\+\(),“”""#$№%!&*;'|:~<>?@]/g;
+        let wordWithoutSymvols = wordsList[inc].replaceAll(pattern, "");
         let wordInSpan = `<span id="${wordWithoutSymvols+inc}" class="translateMyWord">` + wordWithoutSymvols + '</span>';
         contentArray.push(wordsList[inc].replace(wordWithoutSymvols, wordInSpan));
       }

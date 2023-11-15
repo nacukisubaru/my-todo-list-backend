@@ -353,6 +353,12 @@ export class LingvoApiService {
       getTranscription
     });
 
+
+    if (!result.length) {
+      const yandexTranslate = await this.yandexService.translate(word, targetLang, sourceLang);
+      result.push({word: yandexTranslate.translatedWord, type: 'перевод от яндекса'});
+    }
+
     return result.reverse();
   }
 

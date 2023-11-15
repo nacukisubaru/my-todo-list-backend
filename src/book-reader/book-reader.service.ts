@@ -109,7 +109,7 @@ export class BookReaderService {
     let end = startPage;
 
     arr = arrayText.slice(start, end);
-    return {text: arr.join(" "), page};
+    return {text: arr.join(" "), page, countPages: Math.round(arrayText.length / limitOnPage) + 1};
   }
 
   private splitTextBySpanWords (text: string) {
@@ -125,11 +125,11 @@ export class BookReaderService {
             contentArray.push('<br/>');
           } else {
             const withoutSymvols = word.replaceAll(pattern, "");
-            contentArray.push(wordsFromString[key].replace(withoutSymvols, '<span class="translateMyWord">' + withoutSymvols + '</span>'));
+            contentArray.push(wordsFromString[key].replace(withoutSymvols, `<span id="${withoutSymvols+key+inc}" class="translateMyWord">` + withoutSymvols + '</span>'));
           }
         })
       } else {
-        let wordInSpan = '<span class="translateMyWord">' + wordWithoutSymvols + '</span>';
+        let wordInSpan = `<span id="${wordWithoutSymvols+inc}" class="translateMyWord">` + wordWithoutSymvols + '</span>';
         contentArray.push(wordsList[inc].replace(wordWithoutSymvols, wordInSpan));
       }
     }

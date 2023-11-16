@@ -38,11 +38,6 @@ export class DictionaryController {
     return this.dictionaryService.getListByUser(request.user.id, Number(page), filter);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.dictionaryService.findOne(+id);
-  }
-
   @Post('/update-study-stage')
   update(@Body() updateDictionaryDto: UpdateDictionaryDto) {
     return this.dictionaryService.updateStudyStage(updateDictionaryDto.id, updateDictionaryDto.studyStage);
@@ -52,9 +47,5 @@ export class DictionaryController {
   updateNotes(@Body() updateDictionaryDto: UpdateDictionaryDto) {
     return this.dictionaryService.updateNotes(updateDictionaryDto.id, updateDictionaryDto.notes);
   }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.dictionaryService.remove(+id);
-  }
+  
 }

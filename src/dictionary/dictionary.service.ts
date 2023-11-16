@@ -90,15 +90,14 @@ export class DictionaryService {
     return await this.dictionaryRepo.update({notes}, {where: {id}});
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} dictionary`;
+  async getOneByTranslation(word: string, lang: string) {
+    return await this.dictionaryRepo.findOne({ 
+      where: { 
+        translatedWord: word,
+        languageTranslation: lang  
+      },
+      include: { nested: true, all: true }
+    });
   }
 
-  update(id: number, updateDictionaryDto: UpdateDictionaryDto) {
-    return `This action updates a #${id} dictionary`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} dictionary`;
-  }
 }

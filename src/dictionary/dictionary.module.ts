@@ -11,6 +11,9 @@ import { Dictionary } from './entities/dictionary.entity';
   imports: [
     SequelizeModule.forFeature([Dictionary]),
     JwtModule
+  ],
+  exports: [
+    DictionaryService
   ]
 })
 export class DictionaryModule {}

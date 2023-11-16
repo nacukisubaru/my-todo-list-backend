@@ -38,8 +38,9 @@ export class LingvoApiController {
     @Query('sourceLang') sourceLang: string,
     @Query('targetLang') targetLang: string,
   ) {
-    return this.lingvoApiService.fullTranslateWord(word, sourceLang, targetLang);
+    return this.lingvoApiService.fullTranslateWord(word, sourceLang, targetLang, false, true);
   }
+
 
   @Get('/get-examples-for-word')
   getExamplesForWord(

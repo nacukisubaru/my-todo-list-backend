@@ -268,7 +268,7 @@ export class LingvoApiService {
 
   private buildTranslateList(translateList: string[], grammarTypes: string[] = [], excludeAlphabet: string = '') {
     let translateMap = [];
-    let grammarTypeStr = "any";
+    let grammarTypeStr = "все";
     const reg = new RegExp(`[${excludeAlphabet}\u0400]`);
     translateList.map((translate) => {
       const grammarExist = grammarTypes.some((grammarType) => {
@@ -360,7 +360,9 @@ export class LingvoApiService {
 
     try {
       const yandexTranslate = await this.yandexService.translate(word, targetLang, sourceLang);
-      translates.push({word: yandexTranslate.translatedWord, type: 'яндекс'});
+      if (!translates.some(translate => translate.word === yandexTranslate.translatedWord)) {
+        translates.push({word: yandexTranslate.translatedWord, type: 'яндекс'});
+      }
     } catch (error) {}
 
     let dictionaryWordId = '';

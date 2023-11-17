@@ -37,8 +37,17 @@ export class LingvoApiController {
     @Query('word') word: string,
     @Query('sourceLang') sourceLang: string,
     @Query('targetLang') targetLang: string,
+    @Query('getTranscription') getTranscription: string = 'false',
   ) {
-    return this.lingvoApiService.fullTranslateWord(word, sourceLang, targetLang, false, true);
+
+    let isTranscription = false;
+    if (getTranscription === 'false') {
+      isTranscription = false;
+    } else {
+      isTranscription = true;
+    }
+    
+    return this.lingvoApiService.fullTranslateWord(word, sourceLang, targetLang, isTranscription, true);
   }
 
 

@@ -379,9 +379,9 @@ export class LingvoApiService {
     const translatesResults = [];
     translates.map(item => {
       if (savedValues.includes(item.word)) {
-        translatesResults.push({...item, isActive: true, dictionaryWordId});
+        translatesResults.push({...item, isActive: true, dictionaryWordId, originalWord: word});
       } else {
-        translatesResults.push({...item, isActive: false, dictionaryWordId});
+        translatesResults.push({...item, isActive: false, dictionaryWordId, originalWord: word});
       }
     });
     

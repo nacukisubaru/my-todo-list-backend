@@ -311,8 +311,8 @@ export class LingvoApiService {
     return arrayUniqueByKey(translateMap, 'word');
   }
 
-  async shortTranslateWord(word: string, sourceLang: string, targetLang: string) {
-    let wordsList = await this.fullTranslateWord(word, sourceLang, targetLang, true, false);
+  async shortTranslateWord(word: string, sourceLang: string, targetLang: string, getYandexTranslate: boolean = false) {
+    let wordsList = await this.fullTranslateWord(word, sourceLang, targetLang, true, getYandexTranslate, false);
     const transcription = wordsList.find(word => word.type === 'transcription');
     wordsList = wordsList.filter(word => word.type !== 'transcription');
 
@@ -326,7 +326,12 @@ export class LingvoApiService {
     };
   }
 
-  async fullTranslateWord(word: string, sourceLang: string, targetLang: string, getTranscription: boolean = false, getSavedValues: boolean = false) {
+  async fullTranslateWord(
+    word: string, 
+    sourceLang: string, 
+    targetLang: string, 
+    getTranscription: boolean = false,
+    getYandexTranslate: boolean = false, getSavedValues: boolean = false) {
     const response = await this.queryExecute(
       `/Translation/Translate?text=${word}&srcLang=${this.languageCodes[sourceLang]}&dstLang=${this.languageCodes[targetLang]}&returnJsonArticles=true`
     );
@@ -357,11 +362,14 @@ export class LingvoApiService {
     });
     
     const translates = result.reverse();
+    translates.push({word: '', type: 'яндекс'});
 
     try {
-      const yandexTranslate = await this.yandexService.translate(word, targetLang, sourceLang);
-      if (!translates.some(translate => translate.word === yandexTranslate.translatedWord)) {
-        translates.push({word: yandexTranslate.translatedWord, type: 'яндекс'});
+      if (getYandexTranslate) {
+        const yandexTranslate = await this.yandexService.translate(word, targetLang, sourceLang);
+        if (yandexTranslate.translatedWord) {
+          translates.push({word: yandexTranslate.translatedWord, type: 'яндекс'});
+        }
       }
     } catch (error) {}
 
@@ -434,9 +442,9 @@ export class LingvoApiService {
     return examples;
   }
 
-  async translate(word: string, sourceLang: string, targetLang: string) {
+  async translate(word: string, sourceLang: string, targetLang: string, getYandexTranslate: boolean = false) {
     try {
-      const result: any = await this.shortTranslateWord(word, sourceLang, targetLang)
+      const result: any = await this.shortTranslateWord(word, sourceLang, targetLang, getYandexTranslate)
       if (result.originalWord.length !== word.length) {
         throw new HttpException('Слово не найдено', HttpStatus.NOT_FOUND);
       }

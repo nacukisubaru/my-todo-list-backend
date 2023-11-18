@@ -14,8 +14,17 @@ export class LingvoApiController {
   ) { }
 
   @Get('/short-translate')
-  shortTranslateWord(@Query('word') word: string, @Query('sourceLang') sourceLang: string, @Query('targetLang') targetLang: string) {
-    return this.lingvoApiService.shortTranslateWord(word, sourceLang, targetLang);
+  shortTranslateWord(
+    @Query('word') word: string, 
+    @Query('sourceLang') sourceLang: string, 
+    @Query('targetLang') targetLang: string,
+    @Query('getYandexTranslate') getYandexTranslate: string = 'false',
+  ) {
+    let isYandexTranslate = false;
+    if (getYandexTranslate === 'true') {
+      isYandexTranslate = true;
+    }
+    return this.lingvoApiService.shortTranslateWord(word, sourceLang, targetLang, isYandexTranslate);
   }
 
   @Get('/translate')
@@ -24,9 +33,14 @@ export class LingvoApiController {
     @Query('sourceLang') sourceLang: string,
     @Query('targetLang') targetLang: string,
     @Query('translateMethod') translateMethod: translateMethod = "lingvo",
+    @Query('getYandexTranslate') getYandexTranslate: string = 'false',
   ) {
     if (translateMethod === "lingvo") {
-      return this.lingvoApiService.translate(word, sourceLang, targetLang);
+      let isYandexTranslate = false;
+      if (getYandexTranslate === 'true') {
+        isYandexTranslate = true;
+      }
+      return this.lingvoApiService.translate(word, sourceLang, targetLang, isYandexTranslate);
     } else {
       return this.yandexService.translate(word, targetLang, sourceLang);
     }
@@ -38,16 +52,20 @@ export class LingvoApiController {
     @Query('sourceLang') sourceLang: string,
     @Query('targetLang') targetLang: string,
     @Query('getTranscription') getTranscription: string = 'false',
+    @Query('getYandexTranslate') getYandexTranslate: string = 'false',
   ) {
 
     let isTranscription = false;
-    if (getTranscription === 'false') {
-      isTranscription = false;
-    } else {
+    if (getTranscription === 'true') {
       isTranscription = true;
     }
     
-    return this.lingvoApiService.fullTranslateWord(word, sourceLang, targetLang, isTranscription, true);
+    let isYandexTranslate = false;
+    if (getYandexTranslate === 'true') {
+      isYandexTranslate = true;
+    }
+
+    return this.lingvoApiService.fullTranslateWord(word, sourceLang, targetLang, isTranscription, isYandexTranslate, true);
   }
 
 

@@ -4,4 +4,7 @@ export class CreateBookReaderDto {
     videoUrl: string;
     bookmarker: number;
     isVideo: boolean;
+    langOriginal: string;
+    langTranslation: string;
+    isRead: boolean;
 }

@@ -23,14 +23,17 @@ export class BookReaderController {
     @Query('searchByName') searchByName: string,
     @Query('videoOnly') videoOnly: string,
     @Query('booksOnly') booksOnly: string,
-    @Query('page') page: string,
+    @Query('readOnly') readOnly: string,
+    @Query('page') page: string = '1',
+    @Query('limitPage') limitPage: string = '8',
   ) {
     const filter: IFilter = {
       searchByName,
       videoOnly: JSON.parse(videoOnly),
       booksOnly: JSON.parse(booksOnly),
+      readOnly: JSON.parse(readOnly),
     }
-    return this.bookReaderService.getList(request.user.id, Number(page), filter);
+    return this.bookReaderService.getList(request.user.id, Number(page), filter, +limitPage);
   }
 
   @Get('/get-book')
@@ -49,6 +52,11 @@ export class BookReaderController {
   @Post('/update-bookmarker')
   updateBookmark(@Body() updateBookReaderDto: UpdateBookReaderDto) {
     return this.bookReaderService.updateBookmarker(updateBookReaderDto.id, updateBookReaderDto.bookmarker);
+  }
+
+  @Post('/update-read')
+  updateRead(@Body() updateBookReaderDto: UpdateBookReaderDto) {
+    return this.bookReaderService.updateRead(updateBookReaderDto.id, updateBookReaderDto.isRead);
   }
 
 }

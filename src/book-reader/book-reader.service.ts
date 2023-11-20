@@ -23,7 +23,8 @@ export interface IFilter {
   searchByName: string,
   videoOnly: boolean,
   booksOnly: boolean,
-  readOnly: boolean
+  readOnly: boolean,
+  langOriginal: string
 }
 
 @Injectable()
@@ -44,8 +45,8 @@ export class BookReaderService {
     const originalName = path.parse(file.originalname);
     let isVideo: any = createBookReaderDto.isVideo;
     isVideo = JSON.parse(isVideo);
-  
-    if (isVideo && originalName.ext !== 'srt') {
+
+    if (isVideo && originalName.ext !== '.srt') {
       throw new HttpException('не возможно добавить видео без файла субтитров типа srt', HttpStatus.BAD_REQUEST);
     }
 
@@ -53,14 +54,14 @@ export class BookReaderService {
     return await this.bookReaderRepo.create({...createBookReaderDto, isVideo, file: uploadedFile.filePathServer, userId})
   }
 
-  async getList(userId: number, page: number = 1, filter: IFilter = {searchByName: '', videoOnly: false, booksOnly: false, readOnly: false}, limitPage: number = defaultLimitPage) {
+  async getList(userId: number, page: number = 1, filter: IFilter = {searchByName: '', langOriginal: '', videoOnly: false, booksOnly: false, readOnly: false}, limitPage: number = defaultLimitPage) {
     this.bookReaderRepo.findAll({where: {userId}});
 
     page = page - 1;
     const prepareQuery: any = {where: { userId } };
 
     if (filter.videoOnly) {
-      prepareQuery.where.isVideo = true;
+      prepareQuery.where.isVideo = filter.videoOnly;
     }
 
     if (filter.booksOnly) {
@@ -73,6 +74,10 @@ export class BookReaderService {
 
     if (filter.readOnly) {
       prepareQuery.where.isRead = true;
+    }
+
+    if (filter.langOriginal) {
+      prepareQuery.where.langOriginal = filter.langOriginal;
     }
 
     const query: any = paginate(prepareQuery, page, limitPage);

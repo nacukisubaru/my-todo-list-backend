@@ -26,9 +26,11 @@ export class BookReaderController {
     @Query('readOnly') readOnly: string,
     @Query('page') page: string = '1',
     @Query('limitPage') limitPage: string = '8',
+    @Query('langOriginal') langOriginal: string = 'en'
   ) {
     const filter: IFilter = {
       searchByName,
+      langOriginal,
       videoOnly: JSON.parse(videoOnly),
       booksOnly: JSON.parse(booksOnly),
       readOnly: JSON.parse(readOnly),

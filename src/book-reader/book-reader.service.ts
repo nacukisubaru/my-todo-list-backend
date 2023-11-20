@@ -138,13 +138,13 @@ export class BookReaderService {
           if (!word) {
             contentArray.push('<br/>');
           } else {
-            let pattern = /[.=*\+\(),“”""#$№%!&*;'|:~<>?@]/g;
+            let pattern = /[.=*\+\(),“”""#$№%!&*;|:~<>?@]/g;
             const withoutSymvols = word.replaceAll(pattern, "");
             contentArray.push(wordsFromString[key].replace(withoutSymvols, `<span id="${withoutSymvols+key+inc}" class="translateMyWord">` + withoutSymvols + '</span>'));
           }
         })
       } else {
-        let pattern = /[.=*\+\(),“”""#$№%!&*;'|:~<>?@]/g;
+        let pattern = /[.=*\+\(),“”""#$№%!&*;|:~<>?@]/g;
         let wordWithoutSymvols = wordsList[inc].replaceAll(pattern, "");
         let wordInSpan = `<span id="${wordWithoutSymvols+inc}" class="translateMyWord">` + wordWithoutSymvols + '</span>';
         contentArray.push(wordsList[inc].replace(wordWithoutSymvols, wordInSpan));

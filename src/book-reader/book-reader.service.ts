@@ -27,6 +27,12 @@ export interface IFilter {
   langOriginal: string
 }
 
+interface ISubtitle {
+  text: string,
+  timecodes: string[],
+  subtitlePage?: number
+}
+
 @Injectable()
 export class BookReaderService {
 
@@ -34,10 +40,10 @@ export class BookReaderService {
     @InjectModel(BookReader) private bookReaderRepo: typeof BookReader,
     private filesService: FilesService,
     private readonly httpService: HttpService,
-  ) {}
+  ) { }
 
   async create(userId: number, createBookReaderDto: CreateBookReaderDto, file: IFile) {
-    const book = await this.bookReaderRepo.findOne({where: {name: createBookReaderDto.name}});
+    const book = await this.bookReaderRepo.findOne({ where: { name: createBookReaderDto.name } });
     if (book) {
       throw new HttpException('книга или видео уже существует', HttpStatus.BAD_REQUEST);
     }
@@ -51,14 +57,14 @@ export class BookReaderService {
     }
 
     const uploadedFile = this.filesService.createFile(file, 'books', originalName.ext, userId);
-    return await this.bookReaderRepo.create({...createBookReaderDto, isVideo, file: uploadedFile.filePathServer, userId})
+    return await this.bookReaderRepo.create({ ...createBookReaderDto, isVideo, file: uploadedFile.filePathServer, userId })
   }
 
-  async getList(userId: number, page: number = 1, filter: IFilter = {searchByName: '', langOriginal: '', videoOnly: false, booksOnly: false, readOnly: false}, limitPage: number = defaultLimitPage) {
-    this.bookReaderRepo.findAll({where: {userId}});
+  async getList(userId: number, page: number = 1, filter: IFilter = { searchByName: '', langOriginal: '', videoOnly: false, booksOnly: false, readOnly: false }, limitPage: number = defaultLimitPage) {
+    this.bookReaderRepo.findAll({ where: { userId } });
 
     page = page - 1;
-    const prepareQuery: any = {where: { userId } };
+    const prepareQuery: any = { where: { userId } };
 
     if (filter.videoOnly) {
       prepareQuery.where.isVideo = filter.videoOnly;
@@ -100,7 +106,7 @@ export class BookReaderService {
   }
 
   async getContentFromFile(id: number, isVideo: boolean = false) {
-    const book = await this.bookReaderRepo.findOne({where: {id, isVideo}});
+    const book = await this.bookReaderRepo.findOne({ where: { id, isVideo } });
     if (!book) {
       throw new HttpException(`${isVideo ? 'видео' : 'книга'} не найдена`, HttpStatus.NOT_FOUND);
     }
@@ -115,7 +121,7 @@ export class BookReaderService {
       throw new HttpException(error.response.data, HttpStatus.BAD_REQUEST);
     });
 
-    return {content: file.data, book};
+    return { content: file.data, book };
   }
 
   async getBook(id: number, page: number = 1, limitOnPage: number = 500) {
@@ -123,79 +129,120 @@ export class BookReaderService {
     const arrayText = this.splitTextBySpanWords(content.content);
 
     let arr = [];
-    const startPage = limitOnPage * page;
-    let start = startPage === limitOnPage ? 0 : startPage - limitOnPage;
-    let end = startPage;
+    const { start, end } = this.calculateSliceIndexesByPage(limitOnPage, page);
 
     arr = arrayText.slice(start, end);
-    return {text: arr.join(" "), page, countPages: Math.round(arrayText.length / limitOnPage) + 1, book: content.book };
+    return { text: arr.join(" "), page, countPages: Math.round(arrayText.length / limitOnPage) + 1, book: content.book };
   }
 
-  private splitTextBySpanWords (text: string) {
-    const contentArray = []; 
-    const wordsList = text.split(" ");
-    
-    for (let inc = 0; inc < wordsList.length; inc++) {
-     
-      if (wordsList[inc].includes('\n')) {
-        const wordsFromString = wordsList[inc].split("\n");
-        wordsFromString.map((word, key) => {
-          if (!word) {
-            contentArray.push('<br/>');
-          } else {
-            let pattern = /[.=*\+\(),“”""#$№%!&*;|:~<>?@]/g;
-            const withoutSymvols = word.replaceAll(pattern, "");
-            contentArray.push(wordsFromString[key].replace(withoutSymvols, `<span id="${withoutSymvols+key+inc}" class="translateMyWord">` + withoutSymvols + '</span>'));
-          }
-        })
-      } else {
-        let pattern = /[.=*\+\(),“”""#$№%!&*;|:~<>?@]/g;
-        let wordWithoutSymvols = wordsList[inc].replaceAll(pattern, "");
-        let wordInSpan = `<span id="${wordWithoutSymvols+inc}" class="translateMyWord">` + wordWithoutSymvols + '</span>';
-        contentArray.push(wordsList[inc].replace(wordWithoutSymvols, wordInSpan));
+  private splitTextBySpanWords(text: string) {
+    const contentArray = [];
+    if (text) {
+      const wordsList = text.split(" ");
+
+      for (let inc = 0; inc < wordsList.length; inc++) {
+
+        if (wordsList[inc].includes('\n')) {
+          const wordsFromString = wordsList[inc].split("\n");
+          wordsFromString.map((word, key) => {
+            if (!word) {
+              contentArray.push('<br/>');
+            } else {
+              let pattern = /[.=*\+\(),“”""#$№%!&*;|:~<>?@]/g;
+              const withoutSymvols = word.replaceAll(pattern, "");
+              contentArray.push(wordsFromString[key].replace(withoutSymvols, `<span id="${withoutSymvols + key + inc}" class="translateMyWord">` + withoutSymvols + '</span>'));
+            }
+          })
+        } else {
+          let pattern = /[.=*\+\(),“”""#$№%!&*;|:~<>?@]/g;
+          let wordWithoutSymvols = wordsList[inc].replaceAll(pattern, "");
+          let wordInSpan = `<span id="${wordWithoutSymvols + inc}" class="translateMyWord">` + wordWithoutSymvols + '</span>';
+          contentArray.push(wordsList[inc].replace(wordWithoutSymvols, wordInSpan));
+        }
       }
     }
-    
     return contentArray;
   }
 
+  private calculateSliceIndexesByPage(limitOnPage: number, page: number) {
+    const startPage = limitOnPage * page;
+    let start = startPage === limitOnPage ? 0 : startPage - limitOnPage;
+    let end = startPage;
+    return { start, end };
+  }
 
-  async getVideo(id: number, limitOnPage: number = 20) {
-    let content = await this.getContentFromFile(id, true); 
+  async getVideo(id: number, page: number = 1, limitOnPage: number = 20, timecode: string = '') {
+    let content = await this.getContentFromFile(id, true);
     const arrContent = content.content.split("\n").filter(item => item !== "");
     const contentChunks = spliceIntoChunks(arrContent, 3);
-    
-    let page = 1;
-    let start = 0;
-    let end = limitOnPage;
+
+    let startInc = 0;
+    let endInc = limitOnPage;
     let chunks = [];
-    const subtitles = [];
+
+    const subtitles = <ISubtitle[]>[];
     do {
-      chunks = contentChunks.slice(start, end);
+      chunks = contentChunks.slice(startInc, endInc);
       if (chunks.length) {
         let text = '';
         let timecodes = [];
         chunks.map(chunk => {
-          text += this.splitTextBySpanWords(chunk[2]).join()+'<br/>';
+          text += this.splitTextBySpanWords(chunk[2]).join() + '<br/>';
           timecodes.push(chunk[1].split("-->")[0].split(',')[0]);
         })
-        subtitles.push({text, timecodes, page});
-        start += limitOnPage;
-        end += limitOnPage;
-        page++;
+        subtitles.push({ text, timecodes });
+        startInc += limitOnPage;
+        endInc += limitOnPage;
       }
     }
     while (chunks.length);
 
-    return subtitles;
+    const countPages = Math.round(subtitles.length / limitOnPage)
+
+    let start = 0;
+    let end = 0;
+    let text = '';
+    let timecodes = [];
+    let subtitlesData: ISubtitle[] = [];
+    if (!timecode) {
+      const indexes = this.calculateSliceIndexesByPage(limitOnPage, page);
+      start = indexes.start;
+      end = indexes.end;
+      subtitlesData = subtitles.slice(start, end);
+    } else {
+      let incPage = 1;
+      let timecodePage = 0;
+      do {
+        const indexes = this.calculateSliceIndexesByPage(limitOnPage, incPage);
+        subtitlesData = subtitles.slice(indexes.start, indexes.end);
+
+        subtitlesData.map(subtitle => {
+          if (subtitle.timecodes.includes(timecode)) {
+              timecodePage = incPage;
+          }
+        })
+        incPage++;
+
+      }
+      while (!timecodePage)
+
+      page = timecodePage;
+    }
+
+    subtitlesData.map(subtitle => {
+      text += subtitle.text;
+      timecodes = subtitle.timecodes.concat(timecodes);
+    });
+
+    return { text, page, timecodes, book: content.book, countPages };
   }
 
   async updateBookmarker(id: number, bookmarker: number) {
-    return await this.bookReaderRepo.update({bookmarker}, {where: {id}});
+    return await this.bookReaderRepo.update({ bookmarker }, { where: { id } });
   }
 
   async updateRead(id: number, isRead: boolean) {
-    return await this.bookReaderRepo.update({isRead}, {where: {id}});
+    return await this.bookReaderRepo.update({ isRead }, { where: { id } });
   }
- 
+
 }

@@ -21,9 +21,9 @@ export class BookReaderController {
   findAll(
     @Req() request,
     @Query('searchByName') searchByName: string,
-    @Query('videoOnly') videoOnly: string,
-    @Query('booksOnly') booksOnly: string,
-    @Query('readOnly') readOnly: string,
+    @Query('videoOnly') videoOnly: string = 'false',
+    @Query('booksOnly') booksOnly: string = 'false',
+    @Query('readOnly') readOnly: string = 'false',
     @Query('page') page: string = '1',
     @Query('limitPage') limitPage: string = '8',
     @Query('langOriginal') langOriginal: string = 'en'
@@ -39,17 +39,20 @@ export class BookReaderController {
   }
 
   @Get('/get-book')
-  getBook(@Query('id') id: string, @Query('page') page: string = '1', @Query('limitOnPage') limitOnPage: string = '500') {
+  getBook(
+    @Query('id') id: string, 
+    @Query('page') page: string = '1', 
+    @Query('limitOnPage') limitOnPage: string = '500',
+    @Query('getVideo') getVideo: string = 'false',
+    @Query('timecode') timecode: string = ''
+  ) {
+    getVideo = JSON.parse(getVideo);
+    if (getVideo) {
+      return this.bookReaderService.getVideo(+id, +page, +limitOnPage, timecode);
+    }
     return this.bookReaderService.getBook(+id, +page, +limitOnPage);   
   }
 
-  @Get('/get-video')
-  getVideo(@Query('id') id: string, @Query('limitOnPage') limitOnPage: string) {
-    if (limitOnPage) {
-      return this.bookReaderService.getVideo(+id, +limitOnPage);
-    }
-    return this.bookReaderService.getVideo(+id);
-  }
 
   @Post('/update-bookmarker')
   updateBookmark(@Body() updateBookReaderDto: UpdateBookReaderDto) {

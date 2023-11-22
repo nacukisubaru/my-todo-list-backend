@@ -9,6 +9,7 @@ import { Op } from 'sequelize';
 import { HttpService } from '@nestjs/axios';
 import { spliceIntoChunks } from 'src/helpers/arrayHelper';
 import sequelize from 'sequelize';
+import { convertTimeStringToSeconds, getTimePeriod } from 'src/helpers/dateTimeHelper';
 
 interface IFile {
   fieldname: string,
@@ -27,9 +28,15 @@ export interface IFilter {
   langOriginal: string
 }
 
+interface ITimecodeByString {
+  text: string,
+  timecode: string
+}
+
 interface ISubtitle {
   text: string,
   timecodes: string[],
+  timecodesByString: ITimecodeByString[] 
   subtitlePage?: number
 }
 
@@ -186,11 +193,24 @@ export class BookReaderService {
       if (chunks.length) {
         let text = '';
         let timecodes = [];
+        let timecodesByString = [];
         chunks.map(chunk => {
-          text += this.splitTextBySpanWords(chunk[2]).join() + '<br/>';
-          timecodes.push(chunk[1].split("-->")[0].split(',')[0]);
+          text += this.splitTextBySpanWords(chunk[2]).join(" ") + '<br/>';
+          const times: string[] = chunk[1].split("-->");
+          console.log({times})
+          times.map((time) => {
+            timecodesByString.push({text, timecode: time.split(',')[0].trim()});
+            timecodes.push(time.split(',')[0].trim());
+          });
+         
+          const periods = getTimePeriod(times[0].split(',')[0].trim(), times[1].split(',')[0].trim());
+          periods.map(period => {
+            timecodesByString.push({text, timecode: period});
+            timecodes.push(period);
+          })
+        
         })
-        subtitles.push({ text, timecodes });
+        subtitles.push({ text, timecodes, timecodesByString });
         startInc += limitOnPage;
         endInc += limitOnPage;
       }
@@ -210,31 +230,44 @@ export class BookReaderService {
       end = indexes.end;
       subtitlesData = subtitles.slice(start, end);
     } else {
-      let incPage = 1;
+
+      let incPage = 2;
       let timecodePage = 0;
-      do {
-        const indexes = this.calculateSliceIndexesByPage(limitOnPage, incPage);
+      let count = 0;
+      subtitles.map(sub => {
+
+        if (count === limitOnPage) {
+          incPage++;
+          count = 0;
+        } else {
+          count++;
+        }
+
+        if (sub.timecodes.includes(timecode)) {
+          timecodePage = incPage;
+          subtitlesData = [sub];
+        }
+        
+      });
+
+      if(timecodePage) {
+        const indexes = this.calculateSliceIndexesByPage(limitOnPage, timecodePage);
         subtitlesData = subtitles.slice(indexes.start, indexes.end);
-
-        subtitlesData.map(subtitle => {
-          if (subtitle.timecodes.includes(timecode)) {
-              timecodePage = incPage;
-          }
-        })
-        incPage++;
-
       }
-      while (!timecodePage)
 
       page = timecodePage;
     }
-
+    let timecodesByString = [];
     subtitlesData.map(subtitle => {
       text += subtitle.text;
+      timecodesByString = subtitle.timecodesByString.concat(timecodesByString);
       timecodes = subtitle.timecodes.concat(timecodes);
     });
-
-    return { text, page, timecodes, book: content.book, countPages };
+   
+    timecodes.sort(function (a, b) {
+      return convertTimeStringToSeconds(a) - convertTimeStringToSeconds(b);
+    })
+    return { text, page, timecodes, timecodesByString, book: content.book, countPages };
   }
 
   async updateBookmarker(id: number, bookmarker: number) {

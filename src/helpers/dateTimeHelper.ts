@@ -1,4 +1,5 @@
 import * as moment from 'moment';
+
 export const convertTimeStringToSeconds = (time: string = '00:00:00') => {
     var seconds = new Date('1970-01-01T' + time + 'Z').getTime() / 1000;
     return seconds;

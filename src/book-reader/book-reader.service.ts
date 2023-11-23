@@ -7,9 +7,7 @@ import * as path from 'path';
 import { defaultLimitPage, paginate } from 'src/helpers/paginationHelper';
 import { Op } from 'sequelize';
 import { HttpService } from '@nestjs/axios';
-import { spliceIntoChunks } from 'src/helpers/arrayHelper';
-import sequelize from 'sequelize';
-import { convertTimeStringToSeconds, getTimePeriod } from 'src/helpers/dateTimeHelper';
+import { convertSecoundsToTimeString, convertTimeStringToSeconds, getTimePeriod } from 'src/helpers/dateTimeHelper';
 
 interface IFile {
   fieldname: string,
@@ -36,7 +34,7 @@ interface ITimecodeByString {
 interface ISubtitle {
   text: string,
   timecodes: string[],
-  timecodesByString: ITimecodeByString[] 
+  timecodesByString: ITimecodeByString[]
   subtitlePage?: number
 }
 
@@ -194,27 +192,32 @@ export class BookReaderService {
         let timecodes = [];
         let timecodesByString = [];
         chunks.map(chunk => {
-          const timecodeByString = {text: '', timecode: ''};
-          if (chunk.includes("-->")) {          
+          let currentText = '';
+          let currentTimecodes = [];
+          if (chunk.includes("-->")) {
             const times: string[] = chunk.split("-->");
             const periods = getTimePeriod(times[0].split(',')[0].trim(), times[1].split(',')[0].trim());
             periods.map(period => {
-              timecodeByString.timecode = period;
+              currentTimecodes.push(period);
               timecodes.push(period);
             })
-         
+
             times.map((time) => {
-              timecodeByString.timecode = time.split(',')[0].trim();
-              timecodes.push(time.split(',')[0].trim());
+              const modifTime = time.split(',')[0].trim();
+              currentTimecodes.push(modifTime);
+              timecodes.push(modifTime);
             });
-          
+
           } else {
-            timecodeByString.text = this.splitTextBySpanWords(chunk).join(" ") + '<br/>';
-            text += timecodeByString.text;
+            currentText = this.splitTextBySpanWords(chunk).join(" ") + '<br/>';
+            text += currentText;
           }
-        
-          timecodesByString.push(timecodeByString);
-        })
+
+          currentTimecodes.map((timecode) => {
+            timecodesByString.push({text, timecode});
+          });
+        });
+
         subtitles.push({ text, timecodes, timecodesByString });
         startInc += limitOnPage;
         endInc += limitOnPage;
@@ -235,44 +238,53 @@ export class BookReaderService {
       end = indexes.end;
       subtitlesData = subtitles.slice(start, end);
     } else {
+      let timecodePage = this.findByTimecode(subtitles, timecode, limitOnPage);
 
-      let incPage = 2;
-      let timecodePage = 0;
-      let count = 0;
-      subtitles.map(sub => {
-
-        if (count === limitOnPage) {
-          incPage++;
-          count = 0;
-        } else {
-          count++;
+      if (!timecodePage) {
+        let time = convertTimeStringToSeconds(timecode);
+        while (!timecodePage) {
+          time++;
+          timecodePage = this.findByTimecode(subtitles, convertSecoundsToTimeString(time), limitOnPage);
         }
-
-        if (sub.timecodes.includes(timecode)) {
-          timecodePage = incPage;
-          subtitlesData = [sub];
-        }
-        
-      });
-
-      if(timecodePage) {
-        const indexes = this.calculateSliceIndexesByPage(limitOnPage, timecodePage);
-        subtitlesData = subtitles.slice(indexes.start, indexes.end);
       }
 
+      const indexes = this.calculateSliceIndexesByPage(limitOnPage, timecodePage);
+      subtitlesData = subtitles.slice(indexes.start, indexes.end);
       page = timecodePage;
     }
+
     let timecodesByString = [];
     subtitlesData.map(subtitle => {
       text += subtitle.text;
       timecodesByString = subtitle.timecodesByString.concat(timecodesByString);
       timecodes = subtitle.timecodes.concat(timecodes);
     });
-   
+
     timecodes.sort(function (a, b) {
       return convertTimeStringToSeconds(a) - convertTimeStringToSeconds(b);
     })
     return { text, page, timecodes, timecodesByString, book: content.book, countPages };
+  }
+
+  private findByTimecode = (subtitles: ISubtitle[], timecode: string, limitOnPage: number) => {
+    let incPage = 1;
+    let timecodePage = 0;
+    let count = 0;
+ 
+    subtitles.map(sub => {
+      if (sub.timecodes.includes(timecode)) {
+        timecodePage = incPage;
+      }
+
+      if (count === limitOnPage) {
+        incPage++;
+        count = 0;
+      } else {
+        count++;
+      }
+    });
+
+    return timecodePage;
   }
 
   async updateBookmarker(id: number, bookmarker: number) {

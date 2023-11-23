@@ -180,35 +180,40 @@ export class BookReaderService {
 
   async getVideo(id: number, page: number = 1, limitOnPage: number = 20, timecode: string = '') {
     let content = await this.getContentFromFile(id, true);
-    const arrContent = content.content.split("\n").filter(item => item !== "");
-    const contentChunks = spliceIntoChunks(arrContent, 3);
-
+    let arrContent: string[] = content.content.split("\n").filter(item => item !== "");
+    arrContent = arrContent.filter(content => new RegExp(/[a-z A-Z ,.: -->]/).test(content));
     let startInc = 0;
     let endInc = limitOnPage;
     let chunks = [];
 
     const subtitles = <ISubtitle[]>[];
     do {
-      chunks = contentChunks.slice(startInc, endInc);
+      chunks = arrContent.slice(startInc, endInc);
       if (chunks.length) {
         let text = '';
         let timecodes = [];
         let timecodesByString = [];
         chunks.map(chunk => {
-          text += this.splitTextBySpanWords(chunk[2]).join(" ") + '<br/>';
-          const times: string[] = chunk[1].split("-->");
-          console.log({times})
-          times.map((time) => {
-            timecodesByString.push({text, timecode: time.split(',')[0].trim()});
-            timecodes.push(time.split(',')[0].trim());
-          });
+          const timecodeByString = {text: '', timecode: ''};
+          if (chunk.includes("-->")) {          
+            const times: string[] = chunk.split("-->");
+            const periods = getTimePeriod(times[0].split(',')[0].trim(), times[1].split(',')[0].trim());
+            periods.map(period => {
+              timecodeByString.timecode = period;
+              timecodes.push(period);
+            })
          
-          const periods = getTimePeriod(times[0].split(',')[0].trim(), times[1].split(',')[0].trim());
-          periods.map(period => {
-            timecodesByString.push({text, timecode: period});
-            timecodes.push(period);
-          })
+            times.map((time) => {
+              timecodeByString.timecode = time.split(',')[0].trim();
+              timecodes.push(time.split(',')[0].trim());
+            });
+          
+          } else {
+            timecodeByString.text = this.splitTextBySpanWords(chunk).join(" ") + '<br/>';
+            text += timecodeByString.text;
+          }
         
+          timecodesByString.push(timecodeByString);
         })
         subtitles.push({ text, timecodes, timecodesByString });
         startInc += limitOnPage;

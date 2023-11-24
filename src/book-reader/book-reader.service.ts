@@ -35,7 +35,8 @@ interface ISubtitle {
   text: string,
   timecodes: string[],
   timecodesByString: ITimecodeByString[]
-  subtitlePage?: number
+  subtitlePage?: number,
+  page: number
 }
 
 @Injectable()
@@ -131,7 +132,7 @@ export class BookReaderService {
 
   async getBook(id: number, page: number = 1, limitOnPage: number = 500) {
     let content = await this.getContentFromFile(id);
-    const arrayText = this.splitTextBySpanWords(content.content);
+    const arrayText = this.splitTextBySpanWords(content.content, false);
 
     let arr = [];
     const { start, end } = this.calculateSliceIndexesByPage(limitOnPage, page);
@@ -140,8 +141,10 @@ export class BookReaderService {
     return { text: arr.join(" "), page, countPages: Math.round(arrayText.length / limitOnPage) + 1, book: content.book };
   }
 
-  private splitTextBySpanWords(text: string) {
+  private splitTextBySpanWords(text: string, getSpanIds: boolean = false) {
     const contentArray = [];
+    const spanIds = [];
+
     if (text) {
       const wordsList = text.split(" ");
 
@@ -155,17 +158,26 @@ export class BookReaderService {
             } else {
               let pattern = /[.=*\+\(),“”""#$№%!&*;|:~<>?@]/g;
               const withoutSymvols = word.replaceAll(pattern, "");
-              contentArray.push(wordsFromString[key].replace(withoutSymvols, `<span id="${withoutSymvols + key + inc}" class="translateMyWord">` + withoutSymvols + '</span>'));
+              let spanId = withoutSymvols + key + inc;
+              spanIds.push(spanId);
+              contentArray.push(wordsFromString[key].replace(withoutSymvols, `<span id="${spanId}" class="translateMyWord">` + withoutSymvols + '</span>'));
             }
           })
         } else {
           let pattern = /[.=*\+\(),“”""#$№%!&*;|:~<>?@]/g;
           let wordWithoutSymvols = wordsList[inc].replaceAll(pattern, "");
-          let wordInSpan = `<span id="${wordWithoutSymvols + inc}" class="translateMyWord">` + wordWithoutSymvols + '</span>';
+          let spanId = wordWithoutSymvols + inc;
+          spanIds.push(spanId);
+          let wordInSpan = `<span id="${spanId}" class="translateMyWord">` + wordWithoutSymvols + '</span>';
           contentArray.push(wordsList[inc].replace(wordWithoutSymvols, wordInSpan));
         }
       }
     }
+
+    if (getSpanIds) {
+      return spanIds;
+    }
+
     return contentArray;
   }
 
@@ -181,8 +193,14 @@ export class BookReaderService {
     let arrContent: string[] = content.content.split("\n").filter(item => item !== "");
     arrContent = arrContent.filter(content => new RegExp(/[a-z A-Z ,.: -->]/).test(content));
     let startInc = 0;
-    let endInc = limitOnPage;
+    let endInc = 1;
     let chunks = [];
+    let curPage = 1;
+    let inc = 0;
+
+    let currentSpanIds = '';
+    let currentTimecodes = [];
+    let countStrings = 0;
 
     const subtitles = <ISubtitle[]>[];
     do {
@@ -191,10 +209,11 @@ export class BookReaderService {
         let text = '';
         let timecodes = [];
         let timecodesByString = [];
+
         chunks.map(chunk => {
-          let currentText = '';
-          let currentTimecodes = [];
+          
           if (chunk.includes("-->")) {
+            currentTimecodes = [];
             const times: string[] = chunk.split("-->");
             const periods = getTimePeriod(times[0].split(',')[0].trim(), times[1].split(',')[0].trim());
             periods.map(period => {
@@ -209,18 +228,32 @@ export class BookReaderService {
             });
 
           } else {
-            currentText = this.splitTextBySpanWords(chunk).join(" ") + '<br/>';
-            text += currentText;
+            currentSpanIds += this.splitTextBySpanWords(chunk, true).join(" ");
+            text += `<span id="${currentSpanIds}">`+this.splitTextBySpanWords(chunk).join(" ") + '</span>' + '<br/>';
           }
-
-          currentTimecodes.map((timecode) => {
-            timecodesByString.push({text, timecode});
-          });
+       
         });
 
-        subtitles.push({ text, timecodes, timecodesByString });
-        startInc += limitOnPage;
-        endInc += limitOnPage;
+        if (currentSpanIds && currentTimecodes.length) {
+          currentTimecodes.map((timecode) => {
+            timecodesByString.push({spanIds: currentSpanIds, timecode});
+          });
+        }
+
+        if (countStrings === 2) {
+          countStrings = 0;
+          currentSpanIds = '';
+          currentTimecodes = [];
+        }
+
+        subtitles.push({ text, timecodes, timecodesByString, page: curPage });
+        startInc++;
+        endInc++;
+        inc++;
+        if (inc === limitOnPage) {
+          curPage++;
+          inc = 0;
+        }
       }
     }
     while (chunks.length);
@@ -267,23 +300,12 @@ export class BookReaderService {
   }
 
   private findByTimecode = (subtitles: ISubtitle[], timecode: string, limitOnPage: number) => {
-    let incPage = 1;
     let timecodePage = 0;
-    let count = 0;
  
-    subtitles.map(sub => {
-      if (sub.timecodes.includes(timecode)) {
-        timecodePage = incPage;
-      }
-
-      if (count === limitOnPage) {
-        incPage++;
-        count = 0;
-      } else {
-        count++;
-      }
-    });
-
+    const findedSub = subtitles.filter(sub => sub.timecodes.includes(timecode));
+    if (findedSub.length) {
+      timecodePage = findedSub[0].page
+    }
     return timecodePage;
   }
 

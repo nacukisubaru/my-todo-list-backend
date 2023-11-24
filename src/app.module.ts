@@ -25,7 +25,7 @@ import { Dictionary } from './dictionary/entities/dictionary.entity';
 import { DictionaryExamplesModule } from './dictionary-examples/dictionary-examples.module';
 import { DictionaryExample } from './dictionary-examples/entities/dictionary-example.entity';
 import { DictionariesExamples } from './dictionary-examples/entities/dictionaries-examples.entity';
-import { LingvoApiModule } from './lingvo-api/lingvo-api.module';
+import { TranslateApiModule } from './lingvo-api/translate-api.module';
 import { DictionaryLinkedWordsModule } from './dictionary-linked-words/dictionary-linked-words.module';
 import { DictionariesLinkedWords } from './dictionary-linked-words/entities/dictionary-linked-words.entity';
 import { DictionaryLinkedWord } from './dictionary-linked-words/entities/dictionary-linked-word.entity';
@@ -85,7 +85,7 @@ import { BookReaderModule } from './book-reader/book-reader.module';
     YandexCloudModule,
     DictionarySettingsModule,
     DictionaryExamplesModule,
-    LingvoApiModule,
+    TranslateApiModule,
     DictionaryLinkedWordsModule,
     DictionariesLinkedWords,
     BookReaderModule

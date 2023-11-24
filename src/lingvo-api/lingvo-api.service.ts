@@ -311,27 +311,11 @@ export class LingvoApiService {
     return arrayUniqueByKey(translateMap, 'word');
   }
 
-  async shortTranslateWord(word: string, sourceLang: string, targetLang: string, getYandexTranslate: boolean = false) {
-    let wordsList = await this.fullTranslateWord(word, sourceLang, targetLang, true, getYandexTranslate, false);
-    const transcription = wordsList.find(word => word.type === 'transcription');
-    wordsList = wordsList.filter(word => word.type !== 'transcription');
-
-    return {
-      originalWord: word,
-      translatedWord: wordsList[0].word,
-      originalLang: sourceLang,
-      translateLang: targetLang,
-      transcription: transcription ? transcription.word : "",
-      wordsList: wordsList
-    };
-  }
-
   async fullTranslateWord(
     word: string, 
     sourceLang: string, 
     targetLang: string, 
-    getTranscription: boolean = false,
-    getYandexTranslate: boolean = false, getSavedValues: boolean = false) {
+    getTranscription: boolean = false) {
     const response = await this.queryExecute(
       `/Translation/Translate?text=${word}&srcLang=${this.languageCodes[sourceLang]}&dstLang=${this.languageCodes[targetLang]}&returnJsonArticles=true`
     );
@@ -360,42 +344,8 @@ export class LingvoApiService {
       excludeAlphabet,
       getTranscription
     });
-    
-    const translates = result.reverse();
-    translates.push({word: '', type: 'яндекс'});
 
-    try {
-      if (getYandexTranslate) {
-        const yandexTranslate = await this.yandexService.translate(word, targetLang, sourceLang);
-        if (yandexTranslate.translatedWord) {
-          translates.push({word: yandexTranslate.translatedWord, type: 'яндекс'});
-        }
-      }
-    } catch (error) {}
-
-    let dictionaryWordId = '';
-    let savedValues = [];
-    if (getSavedValues) {
-      const dictionaryWord = await this.dictionaryService.getOneByTranslation(word, sourceLang);
-      if (dictionaryWord) {
-        const linkedWords =  dictionaryWord.dataValues.dictionaryLinkedWords;
-        if (linkedWords.length) {
-          savedValues = linkedWords.map(item => item.word);
-        }
-        dictionaryWordId = dictionaryWord.id;
-      }
-    }
-
-    const translatesResults = [];
-    translates.map(item => {
-      if (savedValues.includes(item.word)) {
-        translatesResults.push({...item, isActive: true, dictionaryWordId, originalWord: word});
-      } else {
-        translatesResults.push({...item, isActive: false, dictionaryWordId, originalWord: word});
-      }
-    });
-    
-    return translatesResults;
+    return result;
   }
 
   async getExamplesForWord(word: string, sourceLang: string, targetLang: string, pageSize: number = 15) {
@@ -442,28 +392,4 @@ export class LingvoApiService {
     return examples;
   }
 
-  async translate(word: string, sourceLang: string, targetLang: string, getYandexTranslate: boolean = false) {
-    try {
-      const result: any = await this.shortTranslateWord(word, sourceLang, targetLang, getYandexTranslate)
-      if (result.originalWord.length !== word.length) {
-        throw new HttpException('Слово не найдено', HttpStatus.NOT_FOUND);
-      }
-
-      if (result.translatedWord.includes("совер.")) {
-        throw new HttpException('Слово не найдено', HttpStatus.NOT_FOUND);
-      }
-
-      if (await this.yandexService.getLanguage(result.translatedWord) === sourceLang) {
-        throw new HttpException('Слово не найдено', HttpStatus.NOT_FOUND);
-      }
-
-      return result;
-    } catch (e) {
-      try {
-        return await this.yandexService.translate(word, targetLang, sourceLang);
-      } catch (error) {
-        throw new HttpException(error, HttpStatus.NOT_FOUND);
-      }
-    }
-  }
 }

@@ -1,4 +1,4 @@
-export type translateMethod = "lingvo" | "yandex";
+//export type translateMethod = "lingvo" | "yandex";
 
 export interface IParseParams {
     result: IResponseTranslte[],

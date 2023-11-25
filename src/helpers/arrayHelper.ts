@@ -15,3 +15,11 @@ export function spliceIntoChunks(arr, chunkSize) {
     }
     return res;
 }
+
+export const uniqueList = (array: any[]) => {
+    function onlyUnique(value: any, index: number, array: any[]) {
+        return array.indexOf(value) === index;
+    }
+
+    return array.filter(onlyUnique);
+}

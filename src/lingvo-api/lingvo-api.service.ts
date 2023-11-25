@@ -1,9 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { YandexCloudService } from 'src/yandex-cloud/yandex-cloud.service';
 import { IMarkup, IParseParams, IResponse, IResponseTranslte, ItemResponseTranslate } from './types/lingvo-types';
 import { arrayUniqueByKey, spliceIntoChunks } from 'src/helpers/arrayHelper';
-import { DictionaryService } from 'src/dictionary/dictionary.service';
 
 @Injectable()
 export class LingvoApiService {
@@ -44,10 +42,7 @@ export class LingvoApiService {
 
   private langsWithoutGrammarTypes = ['fr', 'ch'];
 
-  constructor(private readonly httpService: HttpService,
-    private yandexService: YandexCloudService,
-    private dictionaryService: DictionaryService
-  ) { }
+  constructor(private readonly httpService: HttpService) {}
 
   private async queryExecute(query: string): Promise<IResponse> {
     return await this.httpService.axiosRef.get(

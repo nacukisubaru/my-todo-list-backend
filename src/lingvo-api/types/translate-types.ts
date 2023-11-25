@@ -31,3 +31,8 @@ interface IExamplesParams {
     targetLang: string, 
     pageSize: number
 }
+
+interface ITranslateResults {
+    word: string, 
+    type: string
+}

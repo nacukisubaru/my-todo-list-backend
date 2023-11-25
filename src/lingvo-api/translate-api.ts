@@ -2,15 +2,32 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { DictionaryService } from "src/dictionary/dictionary.service";
 import { YandexCloudService } from "src/yandex-cloud/yandex-cloud.service";
 import { LingvoApiService } from "./lingvo-api.service";
+import { WordHuntApiService } from "./word-hunt-translate-api";
+import { InjectModel } from "@nestjs/sequelize";
+import { TranslateApiSettings } from "./entities/translate-api.entity";
 
 @Injectable()
 export class TranslateApiService {
 
     constructor(
+        @InjectModel(TranslateApiSettings) private translateApiSettingsRepo: typeof TranslateApiSettings,
         private yandexService: YandexCloudService,
         private dictionaryService: DictionaryService,
-        private lingvoService: LingvoApiService
+        private lingvoService: LingvoApiService,
+        private wordHuntService: WordHuntApiService
     ) { }
+
+    private async getSettings() {
+        const settings = await this.translateApiSettingsRepo.findAll();
+        if (settings.length) {
+            return settings[0];
+        } else {
+            this.translateApiSettingsRepo.create({
+                lingvo: false,
+                wordHunt: true
+            });
+        }
+    }
 
     private async getSavedTranslates(word: string, sourceLang: string, translates: ITranslateWord[]) {
         let savedValues: string[] = [];
@@ -83,7 +100,8 @@ export class TranslateApiService {
 
         let translates = [];
         translates.push({word: '', type: 'яндекс'});
-    
+        const settings = await this.getSettings();
+
         try {
           if (getYandexTranslate) {
             const yandexTranslate = await this.yandexService.translate(word, targetLang, sourceLang);
@@ -93,9 +111,18 @@ export class TranslateApiService {
           }
         } catch (error) {}
         
-        const lingvoTranslates = await this.lingvoService.fullTranslateWord(word, sourceLang, targetLang, getTranscription);
-        if (lingvoTranslates.length) {
-            translates = translates.concat(lingvoTranslates);
+        if (settings.lingvo) {
+            const lingvoTranslates = await this.lingvoService.fullTranslateWord(word, sourceLang, targetLang, getTranscription);
+            if (lingvoTranslates.length) {
+                translates = translates.concat(lingvoTranslates);
+            }
+        }
+
+        if (settings.wordHunt && (targetLang === "en" || targetLang === "ru")) {
+            const wordHuntTranslates = await this.wordHuntService.parseWords(word, targetLang);
+            if (wordHuntTranslates.length) {
+                translates = translates.concat(wordHuntTranslates);
+            }
         }
 
         if (getSavedWords) {

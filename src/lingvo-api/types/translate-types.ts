@@ -14,7 +14,8 @@ interface ITranslateValuesParams {
     targetLang: string,
     getYandexTranslate: boolean, 
     getSavedWords: boolean,
-    getTranscription: boolean
+    getTranscription: boolean,
+    userId: number
 }
 
 interface ITranslateParams {
@@ -22,7 +23,8 @@ interface ITranslateParams {
     sourceLang: string, 
     targetLang: string, 
     getYandexTranslate: boolean,
-    translateMethod: translateMethod
+    translateMethod: translateMethod,
+    userId: number
 }
 
 interface IExamplesParams {

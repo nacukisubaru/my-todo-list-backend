@@ -1,5 +1,7 @@
-import { Controller, Get, Query, } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, UseGuards, } from '@nestjs/common';
 import { TranslateApiService } from './translate-api';
+import { UpdateLingvoApiDto } from './dto/update-translate-api-settings.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('translate-api')
 export class TranslateApiController {
@@ -7,6 +9,7 @@ export class TranslateApiController {
     private readonly translateService: TranslateApiService
   ) { }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/translate')
   translate(
     @Query('word') word: string,
@@ -14,11 +17,13 @@ export class TranslateApiController {
     @Query('targetLang') targetLang: string,
     @Query('translateMethod') translateMethod: translateMethod = "translateApi",
     @Query('getYandexTranslate') getYandex: string = 'false',
+    @Req() request
   ) {
     let getYandexTranslate = getYandex ? JSON.parse(getYandex) : false;
-    return this.translateService.translate({word, sourceLang, targetLang, getYandexTranslate, translateMethod});
+    return this.translateService.translate({word, sourceLang, targetLang, getYandexTranslate, translateMethod, userId: request.user.id});
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/full-translate')
   fullTranslate(
     @Query('word') word: string,
@@ -26,6 +31,7 @@ export class TranslateApiController {
     @Query('targetLang') targetLang: string,
     @Query('getTranscription') getTranscription: string = 'false',
     @Query('getYandexTranslate') getYandexTranslate: string = 'false',
+    @Req() request
   ) {
 
     let isTranscription = false;
@@ -44,10 +50,12 @@ export class TranslateApiController {
       targetLang, 
       getTranscription: isTranscription,
       getYandexTranslate: isYandexTranslate, 
-      getSavedWords: true
+      getSavedWords: true,
+      userId: request.user.id
     });
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/get-examples-for-word')
   getExamplesForWord(
     @Query('word') word: string,
@@ -56,5 +64,17 @@ export class TranslateApiController {
     @Query('pageSize') pageSize: string,
   ) {
     return this.translateService.getExamples({word, sourceLang, targetLang, pageSize: +pageSize});
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/get-settings')
+  getSettings(@Req() request) {
+    return this.translateService.getSettings(request.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/update-settings')
+  updateSettings(@Body() updateDto: UpdateLingvoApiDto, @Req() request) {
+    return this.translateService.updateSettings(updateDto, request.user.id);
   }
 }

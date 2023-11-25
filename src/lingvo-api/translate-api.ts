@@ -5,6 +5,7 @@ import { LingvoApiService } from "./lingvo-api.service";
 import { WordHuntApiService } from "./word-hunt-translate-api";
 import { InjectModel } from "@nestjs/sequelize";
 import { TranslateApiSettings } from "./entities/translate-api.entity";
+import { UpdateLingvoApiDto } from "./dto/update-translate-api-settings.dto";
 
 @Injectable()
 export class TranslateApiService {
@@ -17,44 +18,25 @@ export class TranslateApiService {
         private wordHuntService: WordHuntApiService
     ) { }
 
-    private async getSettings() {
-        const settings = await this.translateApiSettingsRepo.findAll();
-        if (settings.length) {
-            return settings[0];
+    async getSettings(userId: number) {
+        const settings = await this.translateApiSettingsRepo.findOne({where: {userId}});
+        if (settings) {
+            return settings;
         } else {
-            this.translateApiSettingsRepo.create({
-                lingvo: false,
-                wordHunt: true
-            });
+            const settingsObj = {
+                lingvo: true,
+                wordHunt: true,
+                userId
+            };
+            this.translateApiSettingsRepo.create(settingsObj);
         }
     }
 
-    private async getSavedTranslates(word: string, sourceLang: string, translates: ITranslateWord[]) {
-        let savedValues: string[] = [];
-        let dictionaryWordId = '';
-        let translatesResult = [];
-
-        const dictionaryWord = await this.dictionaryService.getOneByTranslation(word, sourceLang);
-        if (dictionaryWord) {
-            const linkedWords = dictionaryWord.dataValues.dictionaryLinkedWords;
-            if (linkedWords.length) {
-                savedValues = linkedWords.map(item => item.word);
-            }
-            dictionaryWordId = dictionaryWord.id;
-        }
-      
-        translates.map(item => {
-            if (savedValues.includes(item.word)) {
-                translatesResult.push({ ...item, isActive: true, dictionaryWordId, originalWord: word });
-            } else {
-                translatesResult.push({ ...item, isActive: false, dictionaryWordId, originalWord: word });
-            }
-        });
-
-        return translatesResult;
+    async updateSettings(updateDto: UpdateLingvoApiDto, userId: number) {
+       return await this.translateApiSettingsRepo.update(updateDto, {where: {userId}});
     }
 
-    async translate({word, sourceLang, targetLang, getYandexTranslate = false, translateMethod = "translateApi"}: ITranslateParams) {
+    async translate({word, sourceLang, targetLang, getYandexTranslate = false, translateMethod = "translateApi", userId}: ITranslateParams) {
         if (!sourceLang) {
             throw new HttpException('sourceLang missed', HttpStatus.BAD_REQUEST);
         }
@@ -70,7 +52,8 @@ export class TranslateApiService {
                 targetLang, 
                 getTranscription: true, 
                 getYandexTranslate, 
-                getSavedWords: false
+                getSavedWords: false,
+                userId
             });
 
             const transcription = wordsList.find(word => word.type === 'transcription');
@@ -95,12 +78,13 @@ export class TranslateApiService {
         targetLang,
         getYandexTranslate = false, 
         getSavedWords = false,
-        getTranscription = false
+        getTranscription = false,
+        userId
     }: ITranslateValuesParams) {
 
         let translates = [];
         translates.push({word: '', type: 'яндекс'});
-        const settings = await this.getSettings();
+        const settings = await this.getSettings(userId);
 
         try {
           if (getYandexTranslate) {
@@ -132,11 +116,35 @@ export class TranslateApiService {
         return translates.reverse();
     }
 
-
     async getExamples({word, sourceLang, targetLang, pageSize}: IExamplesParams) {
         const examples = [];
         const lingvoExamples = await this.lingvoService.getExamplesForWord(word, sourceLang, targetLang, +pageSize);
         examples.concat(lingvoExamples);
         return examples;
+    }
+
+    private async getSavedTranslates(word: string, sourceLang: string, translates: ITranslateWord[]) {
+        let savedValues: string[] = [];
+        let dictionaryWordId = '';
+        let translatesResult = [];
+
+        const dictionaryWord = await this.dictionaryService.getOneByTranslation(word, sourceLang);
+        if (dictionaryWord) {
+            const linkedWords = dictionaryWord.dataValues.dictionaryLinkedWords;
+            if (linkedWords.length) {
+                savedValues = linkedWords.map(item => item.word);
+            }
+            dictionaryWordId = dictionaryWord.id;
+        }
+      
+        translates.map(item => {
+            if (savedValues.includes(item.word)) {
+                translatesResult.push({ ...item, isActive: true, dictionaryWordId, originalWord: word });
+            } else {
+                translatesResult.push({ ...item, isActive: false, dictionaryWordId, originalWord: word });
+            }
+        });
+
+        return translatesResult;
     }
 }

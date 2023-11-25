@@ -1,6 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { YandexCloudService } from 'src/yandex-cloud/yandex-cloud.service';
 import { IMarkup, IParseParams, IResponse, IResponseTranslte, ItemResponseTranslate } from './types/lingvo-types';
 import { arrayUniqueByKey, spliceIntoChunks } from 'src/helpers/arrayHelper';
 
@@ -43,9 +42,7 @@ export class LingvoApiService {
 
   private langsWithoutGrammarTypes = ['fr', 'ch'];
 
-  constructor(private readonly httpService: HttpService,
-    private yandexService: YandexCloudService,
-  ) { }
+  constructor(private readonly httpService: HttpService) {}
 
   private async queryExecute(query: string): Promise<IResponse> {
     return await this.httpService.axiosRef.get(
@@ -56,7 +53,7 @@ export class LingvoApiService {
   }
 
   private async parseTranslateResult({
-    result,
+    result = [],
     exclude = [],
     optionalOff = false,
     useGrammarTypes = false,
@@ -153,20 +150,22 @@ export class LingvoApiService {
         }
       });
     }
-   // return result["lingvoArticles"];
-    result["lingvoArticles"].map((item: IResponseTranslte) => {
-      if (item.body) {
-        item.body.map((itemBody) => {
-          if (itemBody.markup && !exclude.includes(itemBody.node)) {
-            markupParse(itemBody.markup);
-          }
 
-          if (itemBody.items) {
-            itemParse(itemBody.items);
-          }
-        })
-      }
-    });
+    if (result["lingvoArticles"]) {
+      result["lingvoArticles"].map((item: IResponseTranslte) => {
+        if (item.body) {
+          item.body.map((itemBody) => {
+            if (itemBody.markup && !exclude.includes(itemBody.node)) {
+              markupParse(itemBody.markup);
+            }
+
+            if (itemBody.items) {
+              itemParse(itemBody.items);
+            }
+          })
+        }
+      });
+    }
 
     if (parseExample) {
       translateList = this.sanitizeExamples(translateList, isChinese);
@@ -264,7 +263,7 @@ export class LingvoApiService {
 
   private buildTranslateList(translateList: string[], grammarTypes: string[] = [], excludeAlphabet: string = '') {
     let translateMap = [];
-    let grammarTypeStr = "any";
+    let grammarTypeStr = "все";
     const reg = new RegExp(`[${excludeAlphabet}\u0400]`);
     translateList.map((translate) => {
       const grammarExist = grammarTypes.some((grammarType) => {
@@ -298,32 +297,20 @@ export class LingvoApiService {
         }
       }
     });
-    translateMap = translateMap.filter(translate => translate.word !== "");
+    translateMap = translateMap.filter(translate => translate.word !== "" && translate.word !== "/");
 
     if (excludeAlphabet) {
       translateMap = translateMap.filter(translate => reg.test(translate.word) === false)
     }
 
-    //return translateMap;
     return arrayUniqueByKey(translateMap, 'word');
   }
 
-  async shortTranslateWord(word: string, sourceLang: string, targetLang: string) {
-    let wordsList = await this.fullTranslateWord(word, sourceLang, targetLang, true);
-    const transcription = wordsList.find(word => word.type === 'transcription');
-    wordsList = wordsList.filter(word => word.type !== 'transcription');
-
-    return {
-      originalWord: word,
-      translatedWord: wordsList[0].word,
-      originalLang: sourceLang,
-      translateLang: targetLang,
-      transcription: transcription ? transcription.word : "",
-      wordsList: wordsList
-    };
-  }
-
-  async fullTranslateWord(word: string, sourceLang: string, targetLang: string, getTranscription: boolean = false) {
+  async fullTranslateWord(
+    word: string, 
+    sourceLang: string, 
+    targetLang: string, 
+    getTranscription: boolean = false) {
     const response = await this.queryExecute(
       `/Translation/Translate?text=${word}&srcLang=${this.languageCodes[sourceLang]}&dstLang=${this.languageCodes[targetLang]}&returnJsonArticles=true`
     );
@@ -353,7 +340,7 @@ export class LingvoApiService {
       getTranscription
     });
 
-    return result.reverse();
+    return result;
   }
 
   async getExamplesForWord(word: string, sourceLang: string, targetLang: string, pageSize: number = 15) {
@@ -400,28 +387,4 @@ export class LingvoApiService {
     return examples;
   }
 
-  async translate(word: string, sourceLang: string, targetLang: string) {
-    try {
-      const result: any = await this.shortTranslateWord(word, sourceLang, targetLang)
-      if (result.originalWord.length !== word.length) {
-        throw new HttpException('Слово не найдено', HttpStatus.NOT_FOUND);
-      }
-
-      if (result.translatedWord.includes("совер.")) {
-        throw new HttpException('Слово не найдено', HttpStatus.NOT_FOUND);
-      }
-
-      if (await this.yandexService.getLanguage(result.translatedWord) === sourceLang) {
-        throw new HttpException('Слово не найдено', HttpStatus.NOT_FOUND);
-      }
-
-      return result;
-    } catch (e) {
-      try {
-        return await this.yandexService.translate(word, targetLang, sourceLang);
-      } catch (error) {
-        throw new HttpException(error, HttpStatus.NOT_FOUND);
-      }
-    }
-  }
 }

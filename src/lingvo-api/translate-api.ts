@@ -130,7 +130,7 @@ export class TranslateApiService {
             examples = examples.concat(wordHuntExamples);
         }
 
-        return examples;
+        return examples.reverse();
     }
 
     private async getSavedTranslates(word: string, sourceLang: string, translates: ITranslateWord[]) {

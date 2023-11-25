@@ -116,10 +116,20 @@ export class TranslateApiService {
         return translates.reverse();
     }
 
-    async getExamples({word, sourceLang, targetLang, pageSize}: IExamplesParams) {
-        const examples = [];
-        const lingvoExamples = await this.lingvoService.getExamplesForWord(word, sourceLang, targetLang, +pageSize);
-        examples.concat(lingvoExamples);
+    async getExamples({word, sourceLang, targetLang, pageSize, userId}: IExamplesParams) {
+        let examples = [];
+
+        const settings = await this.getSettings(userId);
+        if (settings.lingvo) {
+            const lingvoExamples = await this.lingvoService.getExamplesForWord(word, sourceLang, targetLang, +pageSize);
+            examples = examples.concat(lingvoExamples);
+        }
+
+        if (settings.wordHunt) {
+            const wordHuntExamples = await this.wordHuntService.parseExamples(word);
+            examples = examples.concat(wordHuntExamples);
+        }
+
         return examples;
     }
 

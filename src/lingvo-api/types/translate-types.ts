@@ -31,10 +31,16 @@ interface IExamplesParams {
     word: string, 
     sourceLang: string, 
     targetLang: string, 
-    pageSize: number
+    pageSize: number,
+    userId: number
 }
 
 interface ITranslateResults {
     word: string, 
     type: string
+}
+
+interface IExamples {
+    originalText: string, 
+    translatedText: string
 }

@@ -62,8 +62,9 @@ export class TranslateApiController {
     @Query('sourceLang') sourceLang: string,
     @Query('targetLang') targetLang: string,
     @Query('pageSize') pageSize: string,
+    @Req() request
   ) {
-    return this.translateService.getExamples({word, sourceLang, targetLang, pageSize: +pageSize});
+    return this.translateService.getExamples({word, sourceLang, targetLang, pageSize: +pageSize, userId: request.user.id});
   }
 
   @UseGuards(JwtAuthGuard)

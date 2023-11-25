@@ -81,6 +81,15 @@ export class WordHuntApiService {
 
             this.getSimilarWords(domDocument, '.similar_words', translates);
             this.getSimilarWords(domDocument, '.phrase_by_part', translates);
+
+            const sound: HTMLAnchorElement = domDocument.querySelector("#us_tr_sound");
+           
+            if (sound) {
+                const transcription = sound.querySelector(".transcription");
+                if (transcription) {
+                    translates.push({word: transcription.innerHTML, type: 'transcription'});
+                }
+            }
         }
 
         translates = arrayUniqueByKey(translates, 'word');
@@ -89,7 +98,7 @@ export class WordHuntApiService {
         }
 
         let translatesResults: ITranslateResults[] = translates.filter(translate => 
-            translate.type === 'все'
+            translate.type === 'все' || translate.type === 'transcription'
         );
 
         types.map((type, key) => {

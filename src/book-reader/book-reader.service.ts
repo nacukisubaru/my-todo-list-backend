@@ -93,7 +93,7 @@ export class BookReaderService {
     }
 
     const query: any = paginate(prepareQuery, page, limitPage);
-    query.order = [['id', 'ASC']];
+    query.order = [['id', 'DESC']];
 
     const books = await this.bookReaderRepo.findAndCountAll(query);
     if (books.rows.length <= 0) {

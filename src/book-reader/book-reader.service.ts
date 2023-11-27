@@ -211,7 +211,7 @@ export class BookReaderService {
         let timecodesByString = [];
 
         chunks.map(chunk => {
-          
+          currentSpanIds = '';
           if (chunk.includes("-->")) {
             currentTimecodes = [];
             const times: string[] = chunk.split("-->");
@@ -296,6 +296,7 @@ export class BookReaderService {
     timecodes.sort(function (a, b) {
       return convertTimeStringToSeconds(a) - convertTimeStringToSeconds(b);
     })
+
     return { text, page, timecodes, timecodesByString, book: content.book, countPages };
   }
 

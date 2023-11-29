@@ -228,7 +228,8 @@ export class BookReaderService {
             });
 
           } else {
-            currentSpanIds += this.splitTextBySpanWords(chunk, true).join(" ");
+            const spanIdsArray = this.splitTextBySpanWords(chunk, true);
+            currentSpanIds += spanIdsArray.join(" ");
             text += `<span id="${currentSpanIds}">`+this.splitTextBySpanWords(chunk).join(" ") + '</span>' + '<br/>';
           }
        
@@ -265,12 +266,8 @@ export class BookReaderService {
     let text = '';
     let timecodes = [];
     let subtitlesData: ISubtitle[] = [];
-    if (!timecode) {
-      const indexes = this.calculateSliceIndexesByPage(limitOnPage, page);
-      start = indexes.start;
-      end = indexes.end;
-      subtitlesData = subtitles.slice(start, end);
-    } else {
+
+    if (timecode) {
       let timecodePage = this.findByTimecode(subtitles, timecode, limitOnPage);
 
       if (!timecodePage) {
@@ -280,12 +277,14 @@ export class BookReaderService {
           timecodePage = this.findByTimecode(subtitles, convertSecoundsToTimeString(time), limitOnPage);
         }
       }
-
-      const indexes = this.calculateSliceIndexesByPage(limitOnPage, timecodePage);
-      subtitlesData = subtitles.slice(indexes.start, indexes.end);
       page = timecodePage;
     }
-
+    
+    const indexes = this.calculateSliceIndexesByPage(limitOnPage, page);
+    start = indexes.start;
+    end = indexes.end;
+    subtitlesData = subtitles.slice(start, end);
+   
     let timecodesByString = [];
     subtitlesData.map(subtitle => {
       text += subtitle.text;

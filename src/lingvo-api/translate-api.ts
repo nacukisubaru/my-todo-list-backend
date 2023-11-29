@@ -83,17 +83,8 @@ export class TranslateApiService {
     }: ITranslateValuesParams) {
 
         let translates = [];
-        translates.push({word: '', type: 'яндекс'});
+       
         const settings = await this.getSettings(userId);
-
-        try {
-          if (getYandexTranslate) {
-            const yandexTranslate = await this.yandexService.translate(word, targetLang, sourceLang);
-            if (yandexTranslate.translatedWord) {
-              translates.push({word: yandexTranslate.translatedWord, type: 'яндекс'});
-            }
-          }
-        } catch (error) {}
         
         if (settings.lingvo) {
             const lingvoTranslates = await this.lingvoService.fullTranslateWord(word, sourceLang, targetLang, getTranscription);
@@ -109,8 +100,18 @@ export class TranslateApiService {
             }
         }
 
+        translates.push({word: '', type: 'яндекс'});
+        try {
+          if (getYandexTranslate) {
+            const yandexTranslate = await this.yandexService.translate(word, targetLang, sourceLang);
+            if (yandexTranslate.translatedWord) {
+              translates.push({word: yandexTranslate.translatedWord, type: 'яндекс'});
+            }
+          }
+        } catch (error) {}
+
         if (getSavedWords) {
-            return (await this.getSavedTranslates(word, sourceLang, translates)).reverse();
+            return (await this.getSavedTranslates(word, sourceLang, translates));
         }
 
         return translates.reverse();
@@ -146,14 +147,22 @@ export class TranslateApiService {
             }
             dictionaryWordId = dictionaryWord.id;
         }
-      
+        
+        const translatesWords = [];
         translates.map(item => {
+            translatesWords.push(item.word);
             if (savedValues.includes(item.word)) {
                 translatesResult.push({ ...item, isActive: true, dictionaryWordId, originalWord: word });
             } else {
                 translatesResult.push({ ...item, isActive: false, dictionaryWordId, originalWord: word });
             }
         });
+
+        savedValues.map(savedValue => {
+            if (!translatesWords.includes(savedValue)) {
+                translatesResult.push({word: savedValue, isActive: true, type: 'все', dictionaryWordId, originalWord: word})
+            }
+        })
 
         return translatesResult;
     }

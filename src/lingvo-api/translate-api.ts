@@ -87,19 +87,26 @@ export class TranslateApiService {
         const settings = await this.getSettings(userId);
         
         if (settings.lingvo) {
-            const lingvoTranslates = await this.lingvoService.fullTranslateWord(word, sourceLang, targetLang, getTranscription);
+            let lingvoTranslates = [];
+            try {
+                lingvoTranslates = await this.lingvoService.fullTranslateWord(word, sourceLang, targetLang, getTranscription);
+            } catch (error) {}
+
             if (lingvoTranslates.length) {
                 translates = translates.concat(lingvoTranslates);
             }
         }
 
         if (settings.wordHunt && (targetLang === "en" || targetLang === "ru")) {
-            const wordHuntTranslates = await this.wordHuntService.parseWords(word, targetLang);
+            let wordHuntTranslates = [];
+            try {
+                wordHuntTranslates = await this.wordHuntService.parseWords(word, targetLang);
+            } catch (error) {}
             if (wordHuntTranslates.length) {
-                translates = translates.concat(wordHuntTranslates);
+                translates = translates.concat(wordHuntTranslates).reverse();
             }
         }
-
+        
         translates.push({word: '', type: 'яндекс'});
         try {
           if (getYandexTranslate) {
@@ -111,10 +118,11 @@ export class TranslateApiService {
         } catch (error) {}
 
         if (getSavedWords) {
-            return (await this.getSavedTranslates(word, sourceLang, translates));
+            const result = await this.getSavedTranslates(word, sourceLang, translates);
+            return result;
         }
 
-        return translates.reverse();
+        return translates;
     }
 
     async getExamples({word, sourceLang, targetLang, pageSize, userId}: IExamplesParams) {

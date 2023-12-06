@@ -317,4 +317,9 @@ export class BookReaderService {
     return await this.bookReaderRepo.update({ isRead }, { where: { id } });
   }
 
+  async removeBook(id: number) {
+    console.log({id})
+    return await this.bookReaderRepo.destroy({where: {id}});
+  }
+
 }

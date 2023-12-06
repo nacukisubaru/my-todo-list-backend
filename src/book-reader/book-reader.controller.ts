@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseInterceptors, UseGuards, UploadedFile, Query, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseInterceptors, UseGuards, UploadedFile, Query, Req, Delete } from '@nestjs/common';
 import { BookReaderService, IFilter } from './book-reader.service';
 import { CreateBookReaderDto } from './dto/create-book-reader.dto';
 import { UpdateBookReaderDto } from './dto/update-book-reader.dto';
@@ -62,6 +62,11 @@ export class BookReaderController {
   @Post('/update-read')
   updateRead(@Body() updateBookReaderDto: UpdateBookReaderDto) {
     return this.bookReaderService.updateRead(updateBookReaderDto.id, updateBookReaderDto.isRead);
+  }
+
+  @Delete('/remove')
+  remove(@Body('id') id: string) {
+    return this.bookReaderService.removeBook(+id);
   }
 
 }

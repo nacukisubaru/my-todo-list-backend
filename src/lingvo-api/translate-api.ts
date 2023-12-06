@@ -103,7 +103,7 @@ export class TranslateApiService {
                 wordHuntTranslates = await this.wordHuntService.parseWords(word, targetLang);
             } catch (error) {}
             if (wordHuntTranslates.length) {
-                translates = translates.concat(wordHuntTranslates).reverse();
+                translates = translates.concat(wordHuntTranslates);
             }
         }
         
@@ -117,6 +117,13 @@ export class TranslateApiService {
           }
         } catch (error) {}
 
+        const otherWords = translates.filter(translate => translate.type == 'яндекс' || translate.type == 'все');
+        translates = translates.filter(translate => translate.type !== 'яндекс' && translate.type !== 'все'); 
+        
+        otherWords.map(word => {
+            translates.push(word);
+        })      
+        
         if (getSavedWords) {
             const result = await this.getSavedTranslates(word, sourceLang, translates);
             return result;

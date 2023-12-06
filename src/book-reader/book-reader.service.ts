@@ -50,16 +50,31 @@ export class BookReaderService {
 
   async create(userId: number, createBookReaderDto: CreateBookReaderDto, file: IFile) {
     const book = await this.bookReaderRepo.findOne({ where: { name: createBookReaderDto.name } });
+
+    if (!file) {
+      throw new HttpException('книга или видео не загружено', HttpStatus.BAD_REQUEST);
+    }
+
     if (book) {
       throw new HttpException('книга или видео уже существует', HttpStatus.BAD_REQUEST);
+    }
+
+    if (!createBookReaderDto.name) {
+      throw new HttpException('не заполнено название книги', HttpStatus.BAD_REQUEST);
     }
 
     const originalName = path.parse(file.originalname);
     let isVideo: any = createBookReaderDto.isVideo;
     isVideo = JSON.parse(isVideo);
 
-    if (isVideo && originalName.ext !== '.srt') {
-      throw new HttpException('не возможно добавить видео без файла субтитров типа srt', HttpStatus.BAD_REQUEST);
+    if (isVideo) {
+      if (originalName.ext !== '.srt') {
+        throw new HttpException('не возможно добавить видео без файла субтитров типа srt', HttpStatus.BAD_REQUEST);
+      }
+    } else {
+       if (originalName.ext !== '.txt') {
+        throw new HttpException('добавлять можно только в формате txt', HttpStatus.BAD_REQUEST);
+      }
     }
 
     const uploadedFile = this.filesService.createFile(file, 'books', originalName.ext, userId);

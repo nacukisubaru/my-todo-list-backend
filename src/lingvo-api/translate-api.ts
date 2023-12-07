@@ -152,6 +152,7 @@ export class TranslateApiService {
     private async getSavedTranslates(word: string, sourceLang: string, translates: ITranslateWord[]) {
         let savedValues: string[] = [];
         let dictionaryWordId = '';
+        let studyStage = '';
         let translatesResult = [];
 
         const dictionaryWord = await this.dictionaryService.getOneByTranslation(word, sourceLang);
@@ -161,21 +162,22 @@ export class TranslateApiService {
                 savedValues = linkedWords.map(item => item.word);
             }
             dictionaryWordId = dictionaryWord.id;
+            studyStage = dictionaryWord.studyStage;
         }
         
         const translatesWords = [];
         translates.map(item => {
             translatesWords.push(item.word);
             if (savedValues.includes(item.word)) {
-                translatesResult.push({ ...item, isActive: true, dictionaryWordId, originalWord: word });
+                translatesResult.push({ ...item, isActive: true, dictionaryWordId, studyStage, originalWord: word });
             } else {
-                translatesResult.push({ ...item, isActive: false, dictionaryWordId, originalWord: word });
+                translatesResult.push({ ...item, isActive: false, dictionaryWordId, studyStage, originalWord: word });
             }
         });
 
         savedValues.map(savedValue => {
             if (!translatesWords.includes(savedValue)) {
-                translatesResult.push({word: savedValue, isActive: true, type: 'все', dictionaryWordId, originalWord: word})
+                translatesResult.push({word: savedValue, isActive: true, type: 'все', dictionaryWordId, studyStage, originalWord: word})
             }
         })
 

@@ -175,7 +175,7 @@ export class BookReaderService {
               const withoutSymvols = word.replaceAll(pattern, "");
               let spanId = withoutSymvols + key + inc;
               spanIds.push(spanId);
-              contentArray.push(wordsFromString[key].replace(withoutSymvols, `<div id="${spanId}" class="translateMyWord">` + withoutSymvols + '</div>'));
+              contentArray.push(wordsFromString[key].replace(withoutSymvols, `<span id="${spanId}" class="translateMyWord">` + withoutSymvols + '</span>'));
             }
           })
         } else {
@@ -183,7 +183,7 @@ export class BookReaderService {
           let wordWithoutSymvols = wordsList[inc].replaceAll(pattern, "");
           let spanId = wordWithoutSymvols + inc + Math.random();
           spanIds.push(spanId);
-          let wordInSpan = `<div id="${spanId}" class="translateMyWord">` + wordWithoutSymvols + '</div>';
+          let wordInSpan = `<span id="${spanId}" class="translateMyWord">` + wordWithoutSymvols + '</span>';
           contentArray.push(wordsList[inc].replace(wordWithoutSymvols, wordInSpan));
         }
       }

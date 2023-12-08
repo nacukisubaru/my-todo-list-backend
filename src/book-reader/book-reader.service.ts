@@ -181,7 +181,7 @@ export class BookReaderService {
         } else {
           let pattern = /[.=*\+\(),“”""#$№%!&*;|:~<>?@]/g;
           let wordWithoutSymvols = wordsList[inc].replaceAll(pattern, "");
-          let spanId = wordWithoutSymvols + inc;
+          let spanId = wordWithoutSymvols + inc + Math.random();
           spanIds.push(spanId);
           let wordInSpan = `<span id="${spanId}" class="translateMyWord">` + wordWithoutSymvols + '</span>';
           contentArray.push(wordsList[inc].replace(wordWithoutSymvols, wordInSpan));
@@ -244,7 +244,7 @@ export class BookReaderService {
 
           } else {
             const spanIdsArray = this.splitTextBySpanWords(chunk, true);
-            currentSpanIds += spanIdsArray.join(" ");
+            currentSpanIds += spanIdsArray.join(" ") + Math.random();
             text += `<span id="${currentSpanIds}">`+this.splitTextBySpanWords(chunk).join(" ") + '</span>' + '<br/>';
           }
        
@@ -333,7 +333,6 @@ export class BookReaderService {
   }
 
   async removeBook(id: number) {
-    console.log({id})
     return await this.bookReaderRepo.destroy({where: {id}});
   }
 

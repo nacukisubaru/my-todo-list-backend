@@ -137,13 +137,24 @@ export class TranslateApiService {
 
         const settings = await this.getSettings(userId);
         if (settings.lingvo) {
-            const lingvoExamples = await this.lingvoService.getExamplesForWord(word, sourceLang, targetLang, +pageSize);
-            examples = examples.concat(lingvoExamples);
+            let lingvoExamples = [];
+            try {
+                lingvoExamples = await this.lingvoService.getExamplesForWord(word, sourceLang, targetLang, +pageSize);
+            } catch(error) {}
+
+            if (lingvoExamples.length) {
+                examples = examples.concat(lingvoExamples);
+            }
         }
 
         if (settings.wordHunt) {
-            const wordHuntExamples = await this.wordHuntService.parseExamples(word);
-            examples = examples.concat(wordHuntExamples);
+            let wordHuntExamples = [];
+            try {
+                wordHuntExamples = await this.wordHuntService.parseExamples(word);
+            } catch(error) {}
+            if (wordHuntExamples.length) {
+                examples = examples.concat(wordHuntExamples);
+            }
         }
 
         return examples.reverse();

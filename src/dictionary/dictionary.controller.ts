@@ -48,4 +48,9 @@ export class DictionaryController {
     return this.dictionaryService.updateNotes(updateDictionaryDto.id, updateDictionaryDto.notes);
   }
   
+
+  @Post('/update-word')
+  updateWord(@Body() updateDictionaryDto: UpdateDictionaryDto) {
+    return this.dictionaryService.updateWord(updateDictionaryDto.id, updateDictionaryDto.originalWord);
+  }
 }

@@ -90,6 +90,11 @@ export class DictionaryService {
     return await this.dictionaryRepo.update({notes}, {where: {id}});
   }
 
+  async updateWord(id: string, originalWord: string) {
+    console.log({id, originalWord})
+    return await this.dictionaryRepo.update({originalWord}, {where: {id}});
+  }
+
   async getOneByTranslation(word: string, lang: string) {
     return await this.dictionaryRepo.findOne({ 
       where: { 

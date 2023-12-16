@@ -6,6 +6,7 @@ import { WordHuntApiService } from "./word-hunt-translate-api";
 import { InjectModel } from "@nestjs/sequelize";
 import { TranslateApiSettings } from "./entities/translate-api.entity";
 import { UpdateLingvoApiDto } from "./dto/update-translate-api-settings.dto";
+import { arrayUniqueByKey } from "src/helpers/arrayHelper";
 
 @Injectable()
 export class TranslateApiService {
@@ -122,8 +123,10 @@ export class TranslateApiService {
         
         otherWords.map(word => {
             translates.push(word);
-        })      
+        });      
         
+        translates = arrayUniqueByKey(translates, 'word');
+
         if (getSavedWords) {
             const result = await this.getSavedTranslates(word, sourceLang, translates);
             return result;

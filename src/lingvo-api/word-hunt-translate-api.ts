@@ -4,6 +4,7 @@ import { type } from "os";
 import { arrayUniqueByKey, uniqueList } from "src/helpers/arrayHelper";
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
+const https = require('https');
 
 @Injectable()
 export class WordHuntApiService {
@@ -11,17 +12,23 @@ export class WordHuntApiService {
     constructor(private readonly httpService: HttpService) { }
 
     private async queryExecute(query: string): Promise<{ data: any }> {
+        const httpsAgent = new https.Agent({
+            rejectUnauthorized: false,
+        });
+
         return await this.httpService.axiosRef.get(
-            this.url + query,
+            this.url + query, {httpsAgent}
         ).catch(function (error) {
+            console.log({error});
             throw new HttpException(error.response.data, HttpStatus.BAD_REQUEST);
         });
     }
-
+    
     async parseWords(word: string, targetLang: string = 'ru') {
         let translates: ITranslateResults[] = [];
         const types: string[] = [];
         let data = await this.queryExecute(`/word/${word}`);
+        console.log({data})
         if (data.data) {
             const { document } = new JSDOM(data.data).window;
             const domDocument: HTMLAnchorElement = document;

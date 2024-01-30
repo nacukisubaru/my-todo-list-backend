@@ -162,7 +162,7 @@ export class BookReaderService {
 
     if (text) {
       const wordsList = text.split(" ");
-
+     
       for (let inc = 0; inc < wordsList.length; inc++) {
 
         if (wordsList[inc].includes('\n')) {
@@ -171,7 +171,7 @@ export class BookReaderService {
             if (!word) {
               contentArray.push('<br/>');
             } else {
-              let pattern = /[^a-zA-Z ]/g;
+              let pattern = /[^a-zA-Z- ]/g;
               const withoutSymvols = word.replaceAll(pattern, "");
               let spanId = withoutSymvols + key + inc;
               spanIds.push(spanId);
@@ -179,7 +179,7 @@ export class BookReaderService {
             }
           })
         } else {
-          let pattern = /[^a-zA-Z ]/g;
+          let pattern = /[^a-zA-Z- ]/g;
           let wordWithoutSymvols = wordsList[inc].replaceAll(pattern, "");
           let spanId = wordWithoutSymvols + inc + Math.random();
           spanIds.push(spanId);
